@@ -1,0 +1,149 @@
+<?php
+defined('BASEPATH') OR exit('No direct script access allowed');
+
+class SalesModel extends CI_Model {
+    private $table = 'sales';
+    private $items_table = 'sales_items';
+
+    public function getAll() {
+        $this->db->select('sales.*, 
+            customers.name as nama_customer, 
+            customers.phone as no_telp_customer, 
+            customers.email as email_customer, 
+            customers.address as alamat_customer,
+            motors.merk as merk_motor,
+            motors.model as model_motor,
+            motors.tahun as tahun_motor,
+            motors.warna as warna_motor,
+            motors.harga as harga_motor');
+        $this->db->from($this->table);
+        $this->db->join('customers', 'customers.id = sales.customer_id');
+        $this->db->join('sales_items', 'sales_items.sale_id = sales.id');
+        $this->db->join('motors', 'motors.id = sales_items.item_id AND sales_items.item_type = "motor"');
+        $this->db->order_by('sales.created_at', 'DESC');
+        return $this->db->get()->result();
+    }
+
+    public function getAllWithCustomer() {
+        $this->db->select('sales.*, customers.name as customer_name');
+        $this->db->from($this->table);
+        $this->db->join('customers', 'customers.id = sales.customer_id');
+        $this->db->order_by('sales.created_at', 'DESC');
+        return $this->db->get()->result();
+    }
+
+    public function getById($id) {
+        $this->db->select('sales.*, 
+            customers.name as nama_customer, 
+            customers.phone as no_telp_customer, 
+            customers.email as email_customer, 
+            customers.address as alamat_customer,
+            motors.merk as merk_motor,
+            motors.model as model_motor,
+            motors.tahun as tahun_motor,
+            motors.warna as warna_motor,
+            motors.harga as harga_motor');
+        $this->db->from($this->table);
+        $this->db->join('customers', 'customers.id = sales.customer_id');
+        $this->db->join('sales_items', 'sales_items.sale_id = sales.id');
+        $this->db->join('motors', 'motors.id = sales_items.item_id AND sales_items.item_type = "motor"');
+        $this->db->where('sales.id', $id);
+        return $this->db->get()->row();
+    }
+
+    public function getByCustomerId($customer_id) {
+        $this->db->where('customer_id', $customer_id);
+        $this->db->order_by('created_at', 'DESC');
+        return $this->db->get($this->table)->result();
+    }
+
+    public function insert($data) {
+        $this->db->insert($this->table, $data);
+        return $this->db->insert_id();
+    }
+
+    public function update($id, $data) {
+        return $this->db->update($this->table, $data, ['id' => $id]);
+    }
+
+    public function delete($id) {
+        return $this->db->delete($this->table, ['id' => $id]);
+    }
+
+    public function getSalesItems($sale_id) {
+        $this->db->select('sales_items.*, 
+            CASE 
+                WHEN item_type = "motor" THEN motors.model
+                WHEN item_type = "sparepart" THEN spareparts.nama
+            END as item_name');
+        $this->db->from($this->items_table);
+        $this->db->join('motors', 'motors.id = sales_items.item_id AND sales_items.item_type = "motor"', 'left');
+        $this->db->join('spareparts', 'spareparts.id = sales_items.item_id AND sales_items.item_type = "sparepart"', 'left');
+        $this->db->where('sale_id', $sale_id);
+        return $this->db->get()->result();
+    }
+
+    public function insertSalesItem($data) {
+        return $this->db->insert($this->items_table, $data);
+    }
+
+    public function deleteSalesItems($sale_id) {
+        return $this->db->delete($this->items_table, ['sale_id' => $sale_id]);
+    }
+
+    public function getLastInvoiceNumber() {
+        $this->db->select('invoice_number');
+        $this->db->from($this->table);
+        $this->db->where('invoice_number LIKE', 'INV' . date('Ymd') . '%');
+        $this->db->order_by('id', 'DESC');
+        $this->db->limit(1);
+        $result = $this->db->get()->row();
+        
+        if ($result) {
+            return substr($result->invoice_number, -4);
+        }
+        return '0000';
+    }
+
+    public function getSalesSummary($start_date = null, $end_date = null) {
+        $this->db->select('SUM(total_amount) as total_sales, COUNT(*) as total_transactions');
+        $this->db->from($this->table);
+        $this->db->where('status', 'completed');
+        
+        if ($start_date && $end_date) {
+            $this->db->where('created_at >=', $start_date);
+            $this->db->where('created_at <=', $end_date);
+        }
+        
+        return $this->db->get()->row();
+    }
+
+    public function getTopSellingItems($limit = 10, $start_date = null, $end_date = null) {
+        $this->db->select('
+            sales_items.item_type,
+            sales_items.item_id,
+            CASE 
+                WHEN sales_items.item_type = "motor" THEN motors.model
+                WHEN sales_items.item_type = "sparepart" THEN spareparts.nama
+            END as item_name,
+            SUM(sales_items.quantity) as total_quantity,
+            SUM(sales_items.subtotal) as total_sales
+        ');
+        $this->db->from($this->items_table);
+        $this->db->join('sales', 'sales.id = sales_items.sale_id');
+        $this->db->join('motors', 'motors.id = sales_items.item_id AND sales_items.item_type = "motor"', 'left');
+        $this->db->join('spareparts', 'spareparts.id = sales_items.item_id AND sales_items.item_type = "sparepart"', 'left');
+        $this->db->where('sales.status', 'completed');
+        
+        if ($start_date && $end_date) {
+            $this->db->where('sales.created_at >=', $start_date);
+            $this->db->where('sales.created_at <=', $end_date);
+        }
+        
+        $this->db->group_by('sales_items.item_type, sales_items.item_id');
+        $this->db->order_by('total_quantity', 'DESC');
+        $this->db->limit($limit);
+        
+        return $this->db->get()->result();
+    }
+} 
