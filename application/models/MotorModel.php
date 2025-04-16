@@ -28,6 +28,13 @@ class MotorModel extends CI_Model {
         return $this->db->get($this->table)->result();
     }
 
+    public function get_available_motors() {
+        $this->db->where('stok >', 0);
+        $this->db->order_by('merk', 'asc');
+        $this->db->order_by('model', 'asc');
+        return $this->db->get($this->table)->result();
+    }
+
     public function count_all($search = null) {
         if ($search) {
             $this->db->group_start()

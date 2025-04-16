@@ -7,46 +7,33 @@ class SalesModel extends CI_Model {
 
     public function getAll() {
         $this->db->select('sales.*, 
-            customers.name as nama_customer, 
-            customers.phone as no_telp_customer, 
-            customers.email as email_customer, 
-            customers.address as alamat_customer,
-            motors.merk as merk_motor,
-            motors.model as model_motor,
-            motors.tahun as tahun_motor,
-            motors.warna as warna_motor,
-            motors.harga as harga_motor');
+            customers.name as nama_customer,
+            CONCAT(motors.merk, " ", motors.model) as motor_name');
         $this->db->from($this->table);
         $this->db->join('customers', 'customers.id = sales.customer_id');
-        $this->db->join('sales_items', 'sales_items.sale_id = sales.id');
-        $this->db->join('motors', 'motors.id = sales_items.item_id AND sales_items.item_type = "motor"');
-        $this->db->order_by('sales.created_at', 'DESC');
-        return $this->db->get()->result();
-    }
-
-    public function getAllWithCustomer() {
-        $this->db->select('sales.*, customers.name as customer_name');
-        $this->db->from($this->table);
-        $this->db->join('customers', 'customers.id = sales.customer_id');
+        $this->db->join('sales_items', 'sales_items.sale_id = sales.id AND sales_items.item_type = "motor"', 'left');
+        $this->db->join('motors', 'motors.id = sales_items.item_id', 'left');
         $this->db->order_by('sales.created_at', 'DESC');
         return $this->db->get()->result();
     }
 
     public function getById($id) {
+        $this->db->select('sales.*');
+        $this->db->from($this->table);
+        $this->db->where('sales.id', $id);
+        return $this->db->get()->row();
+    }
+
+    public function getSaleWithDetails($id) {
         $this->db->select('sales.*, 
-            customers.name as nama_customer, 
-            customers.phone as no_telp_customer, 
-            customers.email as email_customer, 
-            customers.address as alamat_customer,
-            motors.merk as merk_motor,
-            motors.model as model_motor,
-            motors.tahun as tahun_motor,
-            motors.warna as warna_motor,
-            motors.harga as harga_motor');
+            customers.name as customer_name, 
+            customers.phone as customer_phone, 
+            customers.email as customer_email, 
+            customers.address as customer_address,
+            customers.identity_type as customer_identity_type,
+            customers.identity_number as customer_identity_number');
         $this->db->from($this->table);
         $this->db->join('customers', 'customers.id = sales.customer_id');
-        $this->db->join('sales_items', 'sales_items.sale_id = sales.id');
-        $this->db->join('motors', 'motors.id = sales_items.item_id AND sales_items.item_type = "motor"');
         $this->db->where('sales.id', $id);
         return $this->db->get()->row();
     }
@@ -73,7 +60,7 @@ class SalesModel extends CI_Model {
     public function getSalesItems($sale_id) {
         $this->db->select('sales_items.*, 
             CASE 
-                WHEN item_type = "motor" THEN motors.model
+                WHEN item_type = "motor" THEN CONCAT(motors.merk, " ", motors.model)
                 WHEN item_type = "sparepart" THEN spareparts.nama
             END as item_name');
         $this->db->from($this->items_table);
@@ -123,7 +110,7 @@ class SalesModel extends CI_Model {
             sales_items.item_type,
             sales_items.item_id,
             CASE 
-                WHEN sales_items.item_type = "motor" THEN motors.model
+                WHEN sales_items.item_type = "motor" THEN CONCAT(motors.merk, " ", motors.model)
                 WHEN sales_items.item_type = "sparepart" THEN spareparts.nama
             END as item_name,
             SUM(sales_items.quantity) as total_quantity,

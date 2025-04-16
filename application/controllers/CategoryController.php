@@ -11,20 +11,17 @@ class CategoryController extends CI_Controller {
 
 	public function index() {
 		$data['title'] = 'Kategori';
-		$data['categories'] = $this->CategoryModel->getAll();
-		$this->load->view('templates/header');
+		$data['categories'] = $this->CategoryModel->getCategoryWithItemCount();
 		$this->load->view('category/index', $data);
-		$this->load->view('templates/footer');
 	}
 
 	public function add() {
-		$this->load->view('templates/header');
-		$this->load->view('category/add');
-		$this->load->view('templates/footer');
+		$data['title'] = 'Tambah Kategori';
+		$this->load->view('category/add', $data);
 	}
 
 	public function store() {
-		$this->form_validation->set_rules('name', 'Nama Kategori', 'required');
+		$this->form_validation->set_rules('name', 'Nama Kategori', 'required|is_unique[categories.name]');
 		$this->form_validation->set_rules('description', 'Deskripsi', 'required');
 
 		if ($this->form_validation->run() == false) {
@@ -56,13 +53,22 @@ class CategoryController extends CI_Controller {
 			redirect('category');
 		}
 
-		$this->load->view('templates/header');
 		$this->load->view('category/edit', $data);
-		$this->load->view('templates/footer');
 	}
 
 	public function update($id) {
-		$this->form_validation->set_rules('name', 'Nama Kategori', 'required');
+		$category = $this->CategoryModel->getById($id);
+		if (!$category) {
+			$this->session->set_flashdata('error', 'Kategori tidak ditemukan');
+			redirect('category');
+		}
+
+		// Check if name is changed
+		if ($this->input->post('name') != $category->name) {
+			$this->form_validation->set_rules('name', 'Nama Kategori', 'required|is_unique[categories.name]');
+		} else {
+			$this->form_validation->set_rules('name', 'Nama Kategori', 'required');
+		}
 		$this->form_validation->set_rules('description', 'Deskripsi', 'required');
 
 		if ($this->form_validation->run() == false) {
@@ -85,13 +91,18 @@ class CategoryController extends CI_Controller {
 	}
 
 	public function delete($id) {
-		if ($this->CategoryModel->delete($id)) {
-			$this->session->set_flashdata('success', 'Kategori berhasil dihapus');
-			redirect('category');
-		} else {
-			$this->session->set_flashdata('error', 'Terjadi kesalahan saat menghapus kategori');
+		$category = $this->CategoryModel->getById($id);
+		if (!$category) {
+			$this->session->set_flashdata('error', 'Kategori tidak ditemukan');
 			redirect('category');
 		}
+
+		if ($this->CategoryModel->delete($id)) {
+			$this->session->set_flashdata('success', 'Kategori berhasil dihapus');
+		} else {
+			$this->session->set_flashdata('error', 'Terjadi kesalahan saat menghapus kategori');
+		}
+		redirect('category');
 	}
 }
 

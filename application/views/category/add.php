@@ -1,66 +1,71 @@
 <?php $this->load->view('templates/header'); ?>
 
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h1 class="h3 mb-0 text-gray-800">Tambah Kategori</h1>
-    <a href="<?= base_url('category') ?>" class="btn btn-secondary">
-        <i class="fas fa-arrow-left"></i> Kembali
-    </a>
-</div>
-
-<div class="row">
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-body">
-                <form action="<?= base_url('category/store') ?>" method="post" class="needs-validation" novalidate>
-                    <div class="mb-3">
-                        <label for="name" class="form-label required">Nama Kategori</label>
-                        <input type="text" class="form-control <?= form_error('name') ? 'is-invalid' : '' ?>" 
-                            id="name" name="name" value="<?= set_value('name') ?>" required>
-                        <div class="invalid-feedback">
-                            <?= form_error('name') ?: 'Nama kategori harus diisi' ?>
-                        </div>
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="description" class="form-label required">Deskripsi</label>
-                        <textarea class="form-control <?= form_error('description') ? 'is-invalid' : '' ?>" 
-                            id="description" name="description" rows="4" required><?= set_value('description') ?></textarea>
-                        <div class="invalid-feedback">
-                            <?= form_error('description') ?: 'Deskripsi harus diisi' ?>
-                        </div>
-                    </div>
-
-                    <hr>
-                    
-                    <div class="d-flex justify-content-end gap-2">
-                        <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-save"></i> Simpan
-                        </button>
-                        <a href="<?= base_url('category') ?>" class="btn btn-secondary">
-                            <i class="fas fa-times"></i> Batal
-                        </a>
-                    </div>
-                </form>
-            </div>
-        </div>
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Tambah Kategori</h1>
+        <a href="<?= base_url('category') ?>" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Kembali
+        </a>
     </div>
 
-    <div class="col-md-4">
-        <div class="card">
-            <div class="card-header">
-                <h6 class="card-title mb-0">Informasi</h6>
-            </div>
-            <div class="card-body">
-                <div class="small text-muted">
-                    <ul class="mb-0">
-                        <li>Field dengan tanda <span class="text-danger">*</span> wajib diisi</li>
-                        <li>Nama kategori harus unik</li>
-                        <li>Deskripsi sebaiknya menjelaskan kategori dengan jelas</li>
-                    </ul>
+    <?php if (validation_errors()): ?>
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <?= validation_errors() ?>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    <?php endif; ?>
+
+    <div class="card shadow">
+        <div class="card-body">
+            <form action="<?= base_url('category/store') ?>" method="POST" class="needs-validation" novalidate>
+                <div class="mb-3">
+                    <label for="name" class="form-label">Nama Kategori <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="name" name="name" value="<?= set_value('name') ?>" required>
+                    <div class="invalid-feedback">
+                        Nama kategori harus diisi
+                    </div>
                 </div>
-            </div>
+
+                <div class="mb-3">
+                    <label for="description" class="form-label">Deskripsi <span class="text-danger">*</span></label>
+                    <textarea class="form-control" id="description" name="description" rows="3" required><?= set_value('description') ?></textarea>
+                    <div class="invalid-feedback">
+                        Deskripsi harus diisi
+                    </div>
+                </div>
+
+                <hr>
+                <div class="text-end">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Simpan
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
+
+<script>
+// Example starter JavaScript for disabling form submissions if there are invalid fields
+(function () {
+    'use strict'
+
+    // Fetch all the forms we want to apply custom Bootstrap validation styles to
+    var forms = document.querySelectorAll('.needs-validation')
+
+    // Loop over them and prevent submission
+    Array.prototype.slice.call(forms)
+        .forEach(function (form) {
+            form.addEventListener('submit', function (event) {
+                if (!form.checkValidity()) {
+                    event.preventDefault()
+                    event.stopPropagation()
+                }
+
+                form.classList.add('was-validated')
+            }, false)
+        })
+})()
+</script>
 
 <?php $this->load->view('templates/footer'); ?> 

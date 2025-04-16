@@ -8,333 +8,275 @@
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Font Awesome -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <!-- DataTables -->
     <link href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css" rel="stylesheet">
     <link href="https://cdn.datatables.net/responsive/2.4.1/css/responsive.bootstrap5.min.css" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
     <style>
         :root {
-            --header-height: 60px;
-            --sidebar-width: 250px;
+            --header-height: 70px;
+            --primary-color: #2563eb;
+            --secondary-color: #1e40af;
+            --light-bg: #f1f5f9;
+            --dark-bg: #0f172a;
         }
 
         body {
+            font-family: 'Poppins', sans-serif;
             min-height: 100vh;
             padding-top: var(--header-height);
-            overflow-x: hidden;
+            background-color: var(--light-bg);
         }
 
-        .sidebar {
-            position: fixed;
-            top: var(--header-height);
-            bottom: 0;
-            left: 0;
-            width: var(--sidebar-width);
-            z-index: 100;
-            box-shadow: inset -1px 0 0 rgba(0, 0, 0, .1);
-            transition: all 0.3s;
-            background-color: #f8f9fa;
-            overflow-y: auto;
-            height: calc(100vh - var(--header-height));
-            padding: 1rem 0;
+        /* Navbar Styles */
+        .navbar {
+            height: var(--header-height);
+            background: var(--dark-bg);
+            box-shadow: 0 2px 4px rgba(0,0,0,.1);
+            padding: 0.5rem 1rem;
         }
 
-        .sidebar .nav {
-            display: flex;
-            flex-direction: column;
-            padding: 0;
-            margin: 0;
+        .navbar-brand {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: white !important;
         }
 
-        .sidebar .nav-item {
-            width: 100%;
-            margin: 0;
+        .navbar-nav .nav-link {
+            color: rgba(255,255,255,.8) !important;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            transition: all 0.3s ease;
         }
 
-        .nav-link {
-            padding: 0.75rem 1.5rem;
-            color: #333;
-            transition: all 0.3s;
-            border-radius: 0;
-            margin: 0;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+        .navbar-nav .nav-link:hover {
+            color: white !important;
+            background: rgba(255,255,255,.1);
+        }
+
+        .navbar-nav .nav-link.active {
+            color: white !important;
+            background: var(--primary-color);
+        }
+
+        .navbar-profile {
             display: flex;
             align-items: center;
+            color: white;
+            text-decoration: none;
+            padding: 0.5rem;
+            border-radius: 0.5rem;
+            transition: all 0.3s ease;
         }
 
-        .nav-link:hover {
-            background-color: rgba(13, 110, 253, 0.1);
-            color: #0d6efd;
+        .navbar-profile:hover {
+            background: rgba(255,255,255,.1);
         }
 
-        .nav-link.active {
-            background-color: #0d6efd;
+        .profile-image {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            margin-right: 0.75rem;
+            object-fit: cover;
+        }
+
+        .profile-info {
+            line-height: 1.2;
+        }
+
+        .profile-name {
+            font-weight: 500;
+            font-size: 0.9rem;
             color: white;
             margin: 0;
         }
 
-        .nav-link i {
-            width: 20px;
-            text-align: center;
-            margin-right: 0.75rem;
-            flex-shrink: 0;
+        .profile-role {
+            font-size: 0.8rem;
+            color: rgba(255,255,255,.7);
+            margin: 0;
         }
 
-        @media (max-width: 767.98px) {
-            .sidebar {
-                left: calc(-1 * var(--sidebar-width));
-                z-index: 1030;
-            }
-
-            .sidebar.show {
-                left: 0;
-            }
-
-            .content-wrapper {
-                margin-left: 0 !important;
-                width: 100%;
-            }
-        }
-
+        /* Content Wrapper */
         .content-wrapper {
-            margin-left: var(--sidebar-width);
-            transition: all 0.3s;
+            padding: 2rem;
             min-height: calc(100vh - var(--header-height));
-            padding: 24px;
-            background-color: #e9ecef;
-            width: calc(100% - var(--sidebar-width));
-            position: relative;
         }
 
-        @media (max-width: 767.98px) {
-            .content-wrapper {
-                margin-left: 0 !important;
-                width: 100%;
-            }
-        }
-
-        .container-fluid {
-            padding: 0;
-            height: 100%;
-        }
-
+        /* Card & Components */
         .card {
-            box-shadow: 0 0 1px rgba(0,0,0,.125), 0 1px 3px rgba(0,0,0,.2);
-            margin-bottom: 1.5rem;
-            background-color: #ffffff;
             border: none;
-            border-radius: 0.375rem;
+            border-radius: 1rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,.05);
+            margin-bottom: 1.5rem;
         }
 
         .card-header {
-            border-bottom: 1px solid rgba(0,0,0,.125);
-            background-color: transparent;
+            background: white;
+            border-bottom: 1px solid #e5e7eb;
             padding: 1.25rem;
+            border-radius: 1rem 1rem 0 0 !important;
         }
 
         .card-body {
             padding: 1.25rem;
         }
 
-        .table-responsive {
-            background-color: #ffffff;
-            border-radius: 0.375rem;
-            box-shadow: 0 0 1px rgba(0,0,0,.125), 0 1px 3px rgba(0,0,0,.2);
-        }
-
-        .navbar {
-            height: var(--header-height);
-            box-shadow: 0 2px 4px rgba(0,0,0,.1);
-        }
-
-        .navbar-brand {
-            font-size: 1.25rem;
-            padding-top: 0;
-            padding-bottom: 0;
-        }
-
-        .card-title {
-            font-size: 1.1rem;
-            font-weight: 400;
-            margin: 0;
-        }
-
-        .table thead th {
-            background-color: #f8f9fa;
-            border-bottom: 2px solid #dee2e6;
-        }
-
-        .btn-icon {
-            padding: 0.25rem 0.5rem;
-        }
-
-        .footer {
-            background-color: #fff;
-            border-top: 1px solid #dee2e6;
-            padding: 1rem;
-            color: #6c757d;
-        }
-
-        /* Form Styles */
-        .form-label {
+        .btn {
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
             font-weight: 500;
         }
 
-        .required:after {
-            content: " *";
-            color: #dc3545;
+        .btn-primary {
+            background: var(--primary-color);
+            border-color: var(--primary-color);
         }
 
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: #f1f1f1;
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: #888;
-            border-radius: 3px;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: #555;
-        }
-
-        /* DataTables Custom Styles */
-        .dataTables_wrapper .dataTables_length select {
-            min-width: 60px;
-        }
-
-        .dataTables_wrapper .dataTables_filter input {
-            margin-left: 0.5rem;
-        }
-
-        .dataTables_wrapper .dataTables_info {
-            padding-top: 1rem;
+        .btn-primary:hover {
+            background: var(--secondary-color);
+            border-color: var(--secondary-color);
         }
 
         /* Alert Styles */
         .alert {
+            border: none;
+            border-radius: 0.75rem;
+            padding: 1rem 1.5rem;
             margin-bottom: 1.5rem;
         }
 
-        /* Badge Styles */
-        .badge {
-            padding: 0.5em 0.75em;
+        .alert-success {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .alert-danger {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        /* Dropdown Menu */
+        .dropdown-menu {
+            border: none;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,.1),0 2px 4px -1px rgba(0,0,0,.06);
+            border-radius: 0.5rem;
+        }
+
+        .dropdown-item {
+            padding: 0.5rem 1rem;
+            font-size: 0.9rem;
+        }
+
+        .dropdown-item:hover {
+            background-color: var(--light-bg);
+        }
+
+        .dropdown-item i {
+            width: 1.25rem;
+            text-align: center;
+            margin-right: 0.5rem;
         }
     </style>
 </head>
 <body>
     <!-- Navbar -->
-    <nav class="navbar navbar-expand-md navbar-dark bg-dark fixed-top">
+    <nav class="navbar navbar-expand-lg fixed-top">
         <div class="container-fluid">
-            <button class="navbar-toggler border-0" type="button" id="sidebarToggle">
+            <a class="navbar-brand" href="<?= base_url() ?>">
+                <i class="fas fa-motorcycle me-2"></i>
+                Dealer Motor
+            </a>
+            
+            <button class="navbar-toggler bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent">
                 <span class="navbar-toggler-icon"></span>
             </button>
-            <a class="navbar-brand" href="<?= base_url() ?>">Dealer Motor</a>
+
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link <?= $this->uri->segment(1) == '' || $this->uri->segment(1) == 'dashboard' ? 'active' : '' ?>" href="<?= base_url() ?>">
+                            <i class="fas fa-home"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link <?= $this->uri->segment(1) == 'motor' ? 'active' : '' ?>" href="<?= base_url('motor') ?>">
+                            <i class="fas fa-motorcycle"></i> Motor
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link <?= $this->uri->segment(1) == 'sparepart' ? 'active' : '' ?>" href="<?= base_url('sparepart') ?>">
+                            <i class="fas fa-cogs"></i> Sparepart
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link <?= $this->uri->segment(1) == 'category' ? 'active' : '' ?>" href="<?= base_url('category') ?>">
+                            <i class="fas fa-tags"></i> Kategori
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link <?= $this->uri->segment(1) == 'customer' ? 'active' : '' ?>" href="<?= base_url('customer') ?>">
+                            <i class="fas fa-users"></i> Pelanggan
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link <?= $this->uri->segment(1) == 'sales' ? 'active' : '' ?>" href="<?= base_url('sales') ?>">
+                            <i class="fas fa-shopping-cart"></i> Penjualan
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link <?= $this->uri->segment(1) == 'service' ? 'active' : '' ?>" href="<?= base_url('service') ?>">
+                            <i class="fas fa-wrench"></i> Servis
+                        </a>
+                    </li>
+                </ul>
+
+                <div class="d-flex align-items-center">
+                    <div class="dropdown">
+                        <a href="#" class="navbar-profile dropdown-toggle" data-bs-toggle="dropdown">
+                            <img src="https://ui-avatars.com/api/?name=Admin&background=2563eb&color=fff" alt="Profile" class="profile-image">
+                            <div class="profile-info navbar-profile-text">
+                                <p class="profile-name">Admin</p>
+                                <p class="profile-role">Administrator</p>
+                            </div>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="#"><i class="fas fa-user"></i> Profile</a></li>
+                            <li><a class="dropdown-item" href="#"><i class="fas fa-cog"></i> Settings</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item text-danger" href="#"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
         </div>
     </nav>
 
-    <!-- Sidebar -->
-    <div class="sidebar" id="sidebar">
-        <ul class="nav flex-column">
-            <li class="nav-item">
-                <a class="nav-link <?= $this->uri->segment(1) == '' || $this->uri->segment(1) == 'dashboard' ? 'active' : '' ?>" href="<?= base_url() ?>">
-                    <i class="fas fa-home"></i> Dashboard
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link <?= $this->uri->segment(1) == 'motor' ? 'active' : '' ?>" href="<?= base_url('motor') ?>">
-                    <i class="fas fa-motorcycle"></i> Motor
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link <?= $this->uri->segment(1) == 'sparepart' ? 'active' : '' ?>" href="<?= base_url('sparepart') ?>">
-                    <i class="fas fa-cogs"></i> Sparepart
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link <?= $this->uri->segment(1) == 'category' ? 'active' : '' ?>" href="<?= base_url('category') ?>">
-                    <i class="fas fa-tags"></i> Kategori
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link <?= $this->uri->segment(1) == 'customer' ? 'active' : '' ?>" href="<?= base_url('customer') ?>">
-                    <i class="fas fa-users"></i> Pelanggan
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link <?= $this->uri->segment(1) == 'sales' ? 'active' : '' ?>" href="<?= base_url('sales') ?>">
-                    <i class="fas fa-shopping-cart"></i> Penjualan
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link <?= $this->uri->segment(1) == 'service' ? 'active' : '' ?>" href="<?= base_url('service') ?>">
-                    <i class="fas fa-wrench"></i> Servis
-                </a>
-            </li>
-        </ul>
+    <!-- Content Wrapper -->
+    <div >
+        <!-- Flash Messages -->
+        <?php if ($this->session->flashdata('success')): ?>
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="fas fa-check-circle me-2"></i>
+                <?= $this->session->flashdata('success') ?>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        <?php endif; ?>
+
+        <?php if ($this->session->flashdata('error')): ?>
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="fas fa-exclamation-circle me-2"></i>
+                <?= $this->session->flashdata('error') ?>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        <?php endif; ?>
     </div>
-
-    <!-- Main Content -->
-    
-        <div class="container-fluid" style="background-color: #e9ecef;">
-            <?php if ($this->session->flashdata('success')): ?>
-                <div class="alert alert-success alert-dismissible fade show" role="alert">
-                    <?= $this->session->flashdata('success') ?>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-            <?php endif; ?>
-
-            <?php if ($this->session->flashdata('error')): ?>
-                <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                    <?= $this->session->flashdata('error') ?>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-            <?php endif; ?>
-        </div>
-    
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
-    <!-- Custom JS -->
-    <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Toggle sidebar
-        const sidebarToggle = document.getElementById('sidebarToggle');
-        const sidebar = document.getElementById('sidebar');
-        
-        if (sidebarToggle) {
-            sidebarToggle.addEventListener('click', function() {
-                sidebar.classList.toggle('show');
-            });
-        }
-
-        // Close sidebar when clicking outside on mobile
-        document.addEventListener('click', function(event) {
-            const isClickInsideSidebar = sidebar.contains(event.target);
-            const isClickInsideToggle = sidebarToggle.contains(event.target);
-            
-            if (!isClickInsideSidebar && !isClickInsideToggle && sidebar.classList.contains('show')) {
-                sidebar.classList.remove('show');
-            }
-        });
-
-        // Handle window resize
-        window.addEventListener('resize', function() {
-            if (window.innerWidth > 767.98) {
-                sidebar.classList.remove('show');
-            }
-        });
-    });
-    </script>
 </body>
 </html>
