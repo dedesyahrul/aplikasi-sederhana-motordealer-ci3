@@ -8,6 +8,11 @@ class MotorModel extends CI_Model {
         $this->load->database();
     }
 
+    // Helper function untuk membersihkan string
+    private function stripString($str) {
+        return trim(strip_tags($str));
+    }
+
     public function get_all($limit = null, $offset = null, $search = null, $sort = null, $order = 'asc') {
         if ($search) {
             $this->db->group_start()
@@ -52,10 +57,30 @@ class MotorModel extends CI_Model {
     }
 
     public function insert($data) {
+        // Membersihkan string untuk field yang relevan
+        if (isset($data['merk'])) {
+            $data['merk'] = $this->stripString($data['merk']);
+        }
+        if (isset($data['model'])) {
+            $data['model'] = $this->stripString($data['model']);
+        }
+        if (isset($data['warna'])) {
+            $data['warna'] = $this->stripString($data['warna']);
+        }
         return $this->db->insert($this->table, $data);
     }
 
     public function update($id, $data) {
+        // Membersihkan string untuk field yang relevan
+        if (isset($data['merk'])) {
+            $data['merk'] = $this->stripString($data['merk']);
+        }
+        if (isset($data['model'])) {
+            $data['model'] = $this->stripString($data['model']);
+        }
+        if (isset($data['warna'])) {
+            $data['warna'] = $this->stripString($data['warna']);
+        }
         return $this->db->update($this->table, $data, ['id' => $id]);
     }
 

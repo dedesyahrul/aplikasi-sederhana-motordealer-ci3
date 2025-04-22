@@ -15,7 +15,7 @@
                             <option value="">Pilih Customer</option>
                             <?php foreach ($customers as $customer): ?>
                                 <option value="<?= $customer->id ?>" <?= set_select('customer_id', $customer->id) ?>>
-                                    <?= $customer->nama ?> - <?= $customer->no_telp ?>
+                                    <?= $customer->name ?> - <?= $customer->phone ?>
                                 </option>
                             <?php endforeach; ?>
                         </select>

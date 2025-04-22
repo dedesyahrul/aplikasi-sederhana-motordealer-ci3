@@ -11,21 +11,17 @@
 
     <?php if ($this->session->flashdata('success')): ?>
     <div class="alert alert-success alert-dismissible fade show" role="alert">
-        <i class="fas fa-check-circle mr-1"></i>
+        <i class="fas fa-check-circle me-1"></i>
         <?= $this->session->flashdata('success'); ?>
-        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-        </button>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
     <?php endif; ?>
 
     <?php if ($this->session->flashdata('error')): ?>
     <div class="alert alert-danger alert-dismissible fade show" role="alert">
-        <i class="fas fa-exclamation-circle mr-1"></i>
+        <i class="fas fa-exclamation-circle me-1"></i>
         <?= $this->session->flashdata('error'); ?>
-        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-        </button>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
     <?php endif; ?>
 
@@ -56,28 +52,28 @@
                                 <td><?= $sale->motor_name ?? '-' ?></td>
                                 <td>Rp <?= number_format($sale->total_amount, 0, ',', '.') ?></td>
                                 <td>
-                                    <span class="badge badge-<?= strtolower($sale->status) == 'completed' ? 'success' : 'warning' ?>">
-                                        <?= ucfirst($sale->status) ?? 'Pending' ?>
+                                    <span class="badge bg-<?= $sale->status_class ?>">
+                                        <?= $sale->status_label ?>
                                     </span>
                                 </td>
                                 <td class="text-center">
                                     <div class="btn-group">
                                         <a href="<?= base_url('sales/view/'.$sale->id) ?>" 
                                            class="btn btn-info btn-sm"
-                                           data-toggle="tooltip" 
+                                           data-bs-toggle="tooltip" 
                                            title="Detail">
                                             <i class="fas fa-eye"></i>
                                         </a>
                                         <a href="<?= base_url('sales/edit/'.$sale->id) ?>" 
                                            class="btn btn-warning btn-sm"
-                                           data-toggle="tooltip" 
+                                           data-bs-toggle="tooltip" 
                                            title="Edit">
                                             <i class="fas fa-edit"></i>
                                         </a>
                                         <a href="javascript:void(0)" 
                                            class="btn btn-danger btn-sm btn-delete"
                                            data-id="<?= $sale->id ?>"
-                                           data-toggle="tooltip" 
+                                           data-bs-toggle="tooltip" 
                                            title="Hapus">
                                             <i class="fas fa-trash"></i>
                                         </a>
@@ -98,21 +94,19 @@
 </div>
 
 <!-- Delete Confirmation Modal -->
-<div class="modal fade" id="deleteModal" tabindex="-1" role="dialog">
-    <div class="modal-dialog" role="document">
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Konfirmasi Hapus</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
+                <h5 class="modal-title" id="deleteModalLabel">Konfirmasi Hapus</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
                 <p>Apakah Anda yakin ingin menghapus data penjualan ini?</p>
                 <p class="text-warning"><small>Tindakan ini tidak dapat dibatalkan.</small></p>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
                 <form id="deleteForm" method="POST" style="display: inline;">
                     <button type="submit" class="btn btn-danger">Hapus</button>
                 </form>
@@ -121,34 +115,48 @@
     </div>
 </div>
 
+<!-- Required JavaScript -->
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
+
 <script>
-$(document).ready(function() {
+document.addEventListener('DOMContentLoaded', function() {
     // Initialize DataTable
     $('#dataTable').DataTable({
-        "language": {
-            "url": "//cdn.datatables.net/plug-ins/1.10.20/i18n/Indonesian.json"
+        language: {
+            url: '//cdn.datatables.net/plug-ins/1.10.20/i18n/Indonesian.json'
         },
-        "responsive": true,
-        "order": [[2, "desc"]] // Sort by date column descending
+        responsive: true,
+        order: [[2, 'desc']] // Sort by date column descending
     });
 
     // Initialize tooltips
-    $('[data-toggle="tooltip"]').tooltip();
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
 
     // Handle delete confirmation
-    $('.btn-delete').on('click', function(e) {
-        e.preventDefault();
-        var saleId = $(this).data('id');
-        $('#deleteForm').attr('action', '<?= base_url('sales/delete/') ?>' + saleId);
-        $('#deleteModal').modal('show');
+    document.querySelectorAll('.btn-delete').forEach(function(button) {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            var saleId = this.getAttribute('data-id');
+            document.getElementById('deleteForm').setAttribute('action', '<?= base_url('sales/delete/') ?>' + saleId);
+            var deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+            deleteModal.show();
+        });
     });
 
     // Auto close alerts
-    window.setTimeout(function() {
-        $(".alert").fadeTo(500, 0).slideUp(500, function(){
-            $(this).remove(); 
-        });
-    }, 3000);
+    document.querySelectorAll('.alert').forEach(function(alert) {
+        setTimeout(function() {
+            var bsAlert = new bootstrap.Alert(alert);
+            bsAlert.close();
+        }, 3000);
+    });
 });
 </script>
 

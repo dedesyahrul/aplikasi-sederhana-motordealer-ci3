@@ -12,7 +12,34 @@ class SalesController extends CI_Controller {
     public function index() {
         $data['title'] = 'Data Penjualan';
         $data['sales'] = $this->SalesModel->getAll();
+        
+        // Format status untuk tampilan
+        if (!empty($data['sales'])) {
+            foreach ($data['sales'] as &$sale) {
+                $sale->status_label = $this->_get_status_label($sale->status);
+                $sale->status_class = $this->_get_status_class($sale->status);
+            }
+        }
+        
         $this->load->view('sales/index', $data);
+    }
+
+    private function _get_status_label($status) {
+        $labels = [
+            'pending' => 'Menunggu Pembayaran',
+            'completed' => 'Lunas',
+            'cancelled' => 'Dibatalkan'
+        ];
+        return isset($labels[strtolower($status)]) ? $labels[strtolower($status)] : 'Tidak Diketahui';
+    }
+
+    private function _get_status_class($status) {
+        $classes = [
+            'pending' => 'warning',
+            'completed' => 'success',
+            'cancelled' => 'danger'
+        ];
+        return isset($classes[strtolower($status)]) ? $classes[strtolower($status)] : 'secondary';
     }
 
     public function add() {
@@ -39,6 +66,7 @@ class SalesController extends CI_Controller {
         $motor_id = $this->input->post('motor_id');
         $motor = $this->MotorModel->getById($motor_id);
         $harga_jual = $this->input->post('harga_jual');
+        $metode_pembayaran = $this->input->post('metode_pembayaran');
 
         if (!$motor || $motor->stok <= 0) {
             $this->session->set_flashdata('error', 'Motor tidak tersedia atau stok habis');
@@ -53,8 +81,8 @@ class SalesController extends CI_Controller {
             'invoice_number' => $this->_generate_invoice_number(),
             'customer_id' => $this->input->post('customer_id'),
             'total_amount' => $harga_jual,
-            'payment_method' => $this->input->post('metode_pembayaran'),
-            'status' => $this->input->post('metode_pembayaran') == 'cash' ? 'completed' : 'pending',
+            'payment_method' => $metode_pembayaran,
+            'status' => $metode_pembayaran == 'cash' ? 'completed' : 'pending',
             'notes' => $this->input->post('keterangan'),
             'created_at' => date('Y-m-d H:i:s'),
             'updated_at' => date('Y-m-d H:i:s')

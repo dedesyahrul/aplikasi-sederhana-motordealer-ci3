@@ -28,7 +28,8 @@
                                 id="motor_id" name="motor_id">
                             <option value="">Pilih Motor</option>
                             <?php foreach ($motors as $motor): ?>
-                                <option value="<?= $motor->id ?>" <?= set_select('motor_id', $motor->id, ($motor->id == $sale->motor_id)) ?>>
+                                <?php $selected = (!empty($sale_items) && $sale_items[0]->item_id == $motor->id) ? 'selected' : ''; ?>
+                                <option value="<?= $motor->id ?>" <?= $selected ?>>
                                     <?= $motor->merk ?> <?= $motor->model ?> - Rp <?= number_format($motor->harga, 0, ',', '.') ?>
                                 </option>
                             <?php endforeach; ?>

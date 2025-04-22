@@ -177,13 +177,39 @@ INSERT INTO service_items (service_id, sparepart_id, quantity, price, subtotal, 
 (4, 4, 1, 125000.00, 125000.00, NOW()),
 (5, 2, 1, 45000.00, 45000.00, NOW());
 
--- Create users table
+-- Create roles table
+CREATE TABLE roles (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(50) NOT NULL,
+    description TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+-- Insert default roles
+INSERT INTO roles (name, description) VALUES
+('admin', 'Administrator dengan akses penuh'),
+('manager', 'Manajer dengan akses terbatas'),
+('staff', 'Staff dengan akses minimal');
+
+-- Drop existing users table if exists
+DROP TABLE IF EXISTS users;
+
+-- Create users table with role
 CREATE TABLE users (
     id INT PRIMARY KEY AUTO_INCREMENT,
     username VARCHAR(50) UNIQUE NOT NULL,
     password VARCHAR(255) NOT NULL,
     name VARCHAR(100) NOT NULL,
     email VARCHAR(100) UNIQUE NOT NULL,
+    role_id INT NOT NULL,
+    is_active TINYINT(1) DEFAULT 1,
+    last_login DATETIME,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-); 
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (role_id) REFERENCES roles(id)
+);
+
+-- Insert default admin user (password: admin123)
+INSERT INTO users (username, password, name, email, role_id) VALUES
+('admin', '$2y$10$wXvBZMjGZvx.Y9TrDUVVkOYmV0UDzS6jVKcj0uHD9KRDgPRTQzQfi', 'Administrator', 'admin@admin.com', 1); 

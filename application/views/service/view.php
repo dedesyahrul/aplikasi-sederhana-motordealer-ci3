@@ -5,7 +5,7 @@
         <div class="card-header d-flex justify-content-between align-items-center">
             <h5 class="mb-0">Detail Servis</h5>
             <a href="<?= base_url('service') ?>" class="btn btn-secondary btn-sm">
-                <i class="fas fa-arrow-left"></i> Kembali
+                <i class="fas fa-arrow-left me-1"></i> Kembali
             </a>
         </div>
         <div class="card-body">
@@ -29,23 +29,16 @@
                                     <th>Status</th>
                                     <td>
                                         <?php
-                                        $status_class = '';
-                                        $status_text = '';
-                                        switch ($service->status) {
-                                            case 'completed':
-                                                $status_class = 'success';
-                                                $status_text = 'Selesai';
-                                                break;
-                                            case 'in_progress':
-                                                $status_class = 'warning';
-                                                $status_text = 'Proses';
-                                                break;
-                                            default:
-                                                $status_class = 'secondary';
-                                                $status_text = 'Pending';
-                                        }
+                                        $status_badges = [
+                                            'pending' => ['class' => 'secondary', 'text' => 'Pending'],
+                                            'in_progress' => ['class' => 'warning', 'text' => 'Proses'],
+                                            'completed' => ['class' => 'success', 'text' => 'Selesai'],
+                                            'cancelled' => ['class' => 'danger', 'text' => 'Dibatalkan']
+                                        ];
+                                        $status = strtolower($service->status);
+                                        $badge = isset($status_badges[$status]) ? $status_badges[$status] : ['class' => 'secondary', 'text' => 'Tidak Diketahui'];
                                         ?>
-                                        <span class="badge badge-<?= $status_class ?>"><?= $status_text ?></span>
+                                        <span class="badge bg-<?= $badge['class'] ?>"><?= $badge['text'] ?></span>
                                     </td>
                                 </tr>
                                 <tr>
@@ -148,15 +141,15 @@
                                 </tbody>
                                 <tfoot>
                                     <tr>
-                                        <th colspan="4" class="text-right">Total Sparepart</th>
+                                        <th colspan="4" class="text-end">Total Sparepart</th>
                                         <th>Rp <?= number_format($total_parts, 0, ',', '.') ?></th>
                                     </tr>
                                     <tr>
-                                        <th colspan="4" class="text-right">Biaya Service</th>
+                                        <th colspan="4" class="text-end">Biaya Service</th>
                                         <th>Rp <?= number_format($service->service_cost, 0, ',', '.') ?></th>
                                     </tr>
                                     <tr>
-                                        <th colspan="4" class="text-right">Total Biaya</th>
+                                        <th colspan="4" class="text-end">Total Biaya</th>
                                         <th>Rp <?= number_format($service->total_cost, 0, ',', '.') ?></th>
                                     </tr>
                                 </tfoot>
@@ -164,6 +157,7 @@
                         </div>
                     <?php else : ?>
                         <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-1"></i>
                             Tidak ada sparepart yang digunakan
                         </div>
                     <?php endif; ?>
