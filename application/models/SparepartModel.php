@@ -9,6 +9,12 @@ class SparepartModel extends CI_Model {
         return $this->db->get($this->table)->result();
     }
 
+    public function get_available_spareparts() {
+        $this->db->where('stok >', 0);
+        $this->db->order_by('nama', 'ASC');
+        return $this->db->get($this->table)->result();
+    }
+
     public function getById($id) {
         return $this->db->get_where($this->table, ['id' => $id])->row();
     }
@@ -31,13 +37,23 @@ class SparepartModel extends CI_Model {
 
     public function updateStock($id, $quantity, $is_addition = false) {
         $sparepart = $this->getById($id);
-        if (!$sparepart) return false;
+        if (!$sparepart) {
+            return false;
+        }
+
+        // Validasi quantity
+        if (!is_numeric($quantity) || $quantity <= 0) {
+            return false;
+        }
 
         $new_stock = $is_addition ? 
-            $sparepart->stok + $quantity : 
-            $sparepart->stok - $quantity;
+            ($sparepart->stok + $quantity) : 
+            ($sparepart->stok - $quantity);
 
-        if ($new_stock < 0) return false;
+        // Validasi stok tidak boleh negatif
+        if ($new_stock < 0) {
+            return false;
+        }
 
         return $this->update($id, [
             'stok' => $new_stock,

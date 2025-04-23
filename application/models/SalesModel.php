@@ -8,18 +8,31 @@ class SalesModel extends CI_Model {
     public function getAll() {
         $this->db->select('sales.*, 
             customers.name as nama_customer,
-            CONCAT(motors.merk, " ", motors.model) as motor_name');
+            customers.phone as customer_phone,
+            GROUP_CONCAT(
+                CASE 
+                    WHEN sales_items.item_type = "motor" 
+                    THEN CONCAT("motor:", motors.merk, " ", motors.model, " ", motors.tahun, " (", motors.warna, ")")
+                    WHEN sales_items.item_type = "sparepart" 
+                    THEN CONCAT("sparepart:", spareparts.nama, " (", sales_items.quantity, " unit)")
+                END
+                SEPARATOR "||"
+            ) as items_list,
+            GROUP_CONCAT(sales_items.item_type) as item_types');
         $this->db->from($this->table);
         $this->db->join('customers', 'customers.id = sales.customer_id');
-        $this->db->join('sales_items', 'sales_items.sale_id = sales.id AND sales_items.item_type = "motor"', 'left');
-        $this->db->join('motors', 'motors.id = sales_items.item_id', 'left');
+        $this->db->join('sales_items', 'sales_items.sale_id = sales.id', 'left');
+        $this->db->join('motors', 'motors.id = sales_items.item_id AND sales_items.item_type = "motor"', 'left');
+        $this->db->join('spareparts', 'spareparts.id = sales_items.item_id AND sales_items.item_type = "sparepart"', 'left');
+        $this->db->group_by('sales.id');
         $this->db->order_by('sales.created_at', 'DESC');
         return $this->db->get()->result();
     }
 
     public function getById($id) {
-        $this->db->select('sales.*');
+        $this->db->select('sales.*, customers.name as customer_name');
         $this->db->from($this->table);
+        $this->db->join('customers', 'customers.id = sales.customer_id');
         $this->db->where('sales.id', $id);
         return $this->db->get()->row();
     }
@@ -57,17 +70,24 @@ class SalesModel extends CI_Model {
         return $this->db->delete($this->table, ['id' => $id]);
     }
 
-    public function getSalesItems($sale_id) {
-        $this->db->select('sales_items.*, 
-            CASE 
-                WHEN item_type = "motor" THEN CONCAT(motors.merk, " ", motors.model)
-                WHEN item_type = "sparepart" THEN spareparts.nama
-            END as item_name');
-        $this->db->from($this->items_table);
-        $this->db->join('motors', 'motors.id = sales_items.item_id AND sales_items.item_type = "motor"', 'left');
-        $this->db->join('spareparts', 'spareparts.id = sales_items.item_id AND sales_items.item_type = "sparepart"', 'left');
-        $this->db->where('sale_id', $sale_id);
-        return $this->db->get()->result();
+    public function getSalesItems($sale_id) 
+    {
+        $sql = "SELECT 
+            sales_items.*,
+            IF(sales_items.item_type = 'motor', 
+               CONCAT(motors.merk, ' ', motors.model),
+               spareparts.nama) as item_name,
+            IF(sales_items.item_type = 'motor',
+               motors.stok,
+               spareparts.stok) as current_stock
+        FROM sales_items
+        LEFT JOIN motors ON motors.id = sales_items.item_id 
+            AND sales_items.item_type = 'motor'
+        LEFT JOIN spareparts ON spareparts.id = sales_items.item_id 
+            AND sales_items.item_type = 'sparepart'
+        WHERE sales_items.sale_id = ?";
+        
+        return $this->db->query($sql, array($sale_id))->result();
     }
 
     public function insertSalesItem($data) {

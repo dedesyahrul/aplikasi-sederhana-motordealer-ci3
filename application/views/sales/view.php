@@ -1,121 +1,154 @@
 <?php $this->load->view('templates/header'); ?>
 
 <div class="container-fluid">
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Detail Penjualan</h1>
+        <a href="<?= base_url('sales') ?>" class="btn btn-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Kembali
+        </a>
+    </div>
+
     <div class="card shadow mb-4">
-        <div class="card-header">
-            <div class="d-flex justify-content-between align-items-center">
-                <h6 class="m-0 font-weight-bold text-primary">Detail Penjualan</h6>
-                <a href="<?= base_url('sales') ?>" class="btn btn-secondary">
-                    <i class="fas fa-arrow-left"></i> Kembali
-                </a>
-            </div>
-        </div>
         <div class="card-body">
             <div class="row">
                 <div class="col-md-6">
-                    <h5 class="mb-4">Informasi Penjualan</h5>
-                    <table class="table">
-                        <tr>
-                            <th width="30%">No. Faktur</th>
-                            <td><?= $sale->invoice_number ?></td>
-                        </tr>
-                        <tr>
-                            <th>Tanggal</th>
-                            <td><?= date('d/m/Y H:i', strtotime($sale->created_at)) ?></td>
-                        </tr>
-                        <tr>
-                            <th>Total</th>
-                            <td>Rp <?= number_format($sale->total_amount, 0, ',', '.') ?></td>
-                        </tr>
-                        <tr>
-                            <th>Metode Pembayaran</th>
-                            <td>
-                                <?php
-                                $payment_labels = [
-                                    'cash' => 'Tunai',
-                                    'transfer' => 'Transfer Bank',
-                                    'credit_card' => 'Kartu Kredit'
-                                ];
-                                echo $payment_labels[$sale->payment_method] ?? ucfirst($sale->payment_method);
-                                ?>
-                            </td>
-                        </tr>
-                        <tr>
-                            <th>Status</th>
-                            <td>
-                                <?php
-                                $status_badge = [
-                                    'pending' => 'warning',
-                                    'completed' => 'success',
-                                    'cancelled' => 'danger'
-                                ];
-                                $status_label = [
-                                    'pending' => 'Menunggu',
-                                    'completed' => 'Selesai',
-                                    'cancelled' => 'Dibatalkan'
-                                ];
-                                ?>
-                                <span class="badge bg-<?= $status_badge[$sale->status] ?>">
-                                    <?= $status_label[$sale->status] ?>
-                                </span>
-                            </td>
-                        </tr>
-                        <tr>
-                            <th>Keterangan</th>
-                            <td><?= $sale->notes ?: '-' ?></td>
-                        </tr>
-                    </table>
+                    <div class="card border-primary mb-3">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="card-title mb-0">
+                                <i class="fas fa-file-invoice me-2"></i>Informasi Penjualan
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <table class="table table-borderless">
+                                <tr>
+                                    <th width="35%">No. Faktur</th>
+                                    <td><?= $sale->invoice_number ?></td>
+                                </tr>
+                                <tr>
+                                    <th>Tanggal</th>
+                                    <td><?= date('d/m/Y H:i', strtotime($sale->created_at)) ?></td>
+                                </tr>
+                                <tr>
+                                    <th>Total</th>
+                                    <td>Rp <?= number_format($sale->total_amount, 0, ',', '.') ?></td>
+                                </tr>
+                                <tr>
+                                    <th>Metode Pembayaran</th>
+                                    <td>
+                                        <?php
+                                        $payment_labels = [
+                                            'cash' => '<i class="fas fa-money-bill-wave me-1"></i>Tunai',
+                                            'transfer' => '<i class="fas fa-university me-1"></i>Transfer Bank',
+                                            'credit_card' => '<i class="fas fa-credit-card me-1"></i>Kartu Kredit'
+                                        ];
+                                        echo $payment_labels[$sale->payment_method] ?? ucfirst($sale->payment_method);
+                                        ?>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>Status</th>
+                                    <td>
+                                        <?php
+                                        $status_badge = [
+                                            'pending' => 'warning',
+                                            'completed' => 'success',
+                                            'cancelled' => 'danger'
+                                        ];
+                                        $status_label = [
+                                            'pending' => 'Menunggu',
+                                            'completed' => 'Selesai',
+                                            'cancelled' => 'Dibatalkan'
+                                        ];
+                                        ?>
+                                        <span class="badge bg-<?= $status_badge[$sale->status] ?>">
+                                            <?= $status_label[$sale->status] ?>
+                                        </span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>Keterangan</th>
+                                    <td><?= $sale->notes ?: '<span class="text-muted">-</span>' ?></td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
                 </div>
                 <div class="col-md-6">
-                    <h5 class="mb-4">Informasi Customer</h5>
-                    <table class="table">
-                        <tr>
-                            <th width="30%">Nama</th>
-                            <td><?= $customer->name ?></td>
-                        </tr>
-                        <tr>
-                            <th>No. Telepon</th>
-                            <td><?= $customer->phone ?></td>
-                        </tr>
-                        <tr>
-                            <th>Email</th>
-                            <td><?= $customer->email ?: '-' ?></td>
-                        </tr>
-                        <tr>
-                            <th>Alamat</th>
-                            <td><?= $customer->address ?></td>
-                        </tr>
-                        <tr>
-                            <th>Identitas</th>
-                            <td>
-                                <?php
-                                $identity_types = [
-                                    'ktp' => 'KTP',
-                                    'sim' => 'SIM',
-                                    'passport' => 'Passport'
-                                ];
-                                echo $identity_types[$customer->identity_type] ?? ucfirst($customer->identity_type);
-                                ?> - 
-                                <?= $customer->identity_number ?>
-                            </td>
-                        </tr>
-                    </table>
+                    <div class="card border-info mb-3">
+                        <div class="card-header bg-info text-white">
+                            <h5 class="card-title mb-0">
+                                <i class="fas fa-user me-2"></i>Informasi Customer
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <table class="table table-borderless">
+                                <tr>
+                                    <th width="35%">Nama</th>
+                                    <td><?= $customer->name ?></td>
+                                </tr>
+                                <tr>
+                                    <th>No. Telepon</th>
+                                    <td>
+                                        <i class="fas fa-phone me-1"></i>
+                                        <?= $customer->phone ?>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>Email</th>
+                                    <td>
+                                        <?php if ($customer->email): ?>
+                                            <i class="fas fa-envelope me-1"></i>
+                                            <?= $customer->email ?>
+                                        <?php else: ?>
+                                            <span class="text-muted">-</span>
+                                        <?php endif; ?>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>Alamat</th>
+                                    <td>
+                                        <i class="fas fa-map-marker-alt me-1"></i>
+                                        <?= $customer->address ?>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>Identitas</th>
+                                    <td>
+                                        <i class="fas fa-id-card me-1"></i>
+                                        <?php
+                                        $identity_types = [
+                                            'ktp' => 'KTP',
+                                            'sim' => 'SIM',
+                                            'passport' => 'Passport'
+                                        ];
+                                        echo $identity_types[$customer->identity_type] ?? ucfirst($customer->identity_type);
+                                        ?> - 
+                                        <?= $customer->identity_number ?>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <div class="row mt-4">
-                <div class="col-12">
-                    <h5 class="mb-4">Item Penjualan</h5>
+            <div class="card border-success mb-3">
+                <div class="card-header bg-success text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-shopping-cart me-2"></i>Item Penjualan
+                    </h5>
+                </div>
+                <div class="card-body">
                     <div class="table-responsive">
-                        <table class="table table-bordered">
+                        <table class="table table-bordered table-striped">
                             <thead>
                                 <tr>
-                                    <th>No</th>
-                                    <th>Tipe</th>
+                                    <th width="50" class="text-center">No</th>
+                                    <th width="100">Tipe</th>
                                     <th>Item</th>
-                                    <th>Jumlah</th>
-                                    <th>Harga</th>
-                                    <th>Subtotal</th>
+                                    <th class="text-center" width="100">Jumlah</th>
+                                    <th class="text-end" width="150">Harga</th>
+                                    <th class="text-end" width="150">Subtotal</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -126,12 +159,12 @@
                                     $total += $item->subtotal;
                                 ?>
                                 <tr>
-                                    <td><?= $no++ ?></td>
+                                    <td class="text-center"><?= $no++ ?></td>
                                     <td>
                                         <?php
                                         $type_labels = [
-                                            'motor' => 'Motor',
-                                            'sparepart' => 'Sparepart'
+                                            'motor' => '<span class="badge bg-primary"><i class="fas fa-motorcycle me-1"></i>Motor</span>',
+                                            'sparepart' => '<span class="badge bg-info"><i class="fas fa-cogs me-1"></i>Sparepart</span>'
                                         ];
                                         echo $type_labels[$item->item_type] ?? ucfirst($item->item_type);
                                         ?>
@@ -144,9 +177,9 @@
                                 <?php endforeach; ?>
                             </tbody>
                             <tfoot>
-                                <tr>
-                                    <th colspan="5" class="text-end">Total:</th>
-                                    <th class="text-end">Rp <?= number_format($total, 0, ',', '.') ?></th>
+                                <tr class="fw-bold">
+                                    <td colspan="5" class="text-end">Total:</td>
+                                    <td class="text-end">Rp <?= number_format($total, 0, ',', '.') ?></td>
                                 </tr>
                             </tfoot>
                         </table>
@@ -155,16 +188,55 @@
             </div>
 
             <?php if ($sale->status == 'completed'): ?>
-            <div class="row mt-4">
-                <div class="col-12">
-                    <div class="alert alert-success mb-0">
-                        <i class="fas fa-check-circle me-2"></i> Penjualan ini telah selesai pada <?= date('d/m/Y H:i', strtotime($sale->updated_at)) ?>
-                    </div>
+            <div class="alert alert-success d-flex align-items-center mb-0">
+                <i class="fas fa-check-circle me-2 fs-5"></i>
+                <div>
+                    Penjualan ini telah selesai pada <?= date('d/m/Y H:i', strtotime($sale->updated_at)) ?>
+                </div>
+            </div>
+            <?php elseif ($sale->status == 'pending'): ?>
+            <div class="alert alert-warning d-flex align-items-center mb-0">
+                <i class="fas fa-clock me-2 fs-5"></i>
+                <div>
+                    Menunggu pembayaran
                 </div>
             </div>
             <?php endif; ?>
         </div>
     </div>
 </div>
+
+<style>
+/* Card Styles */
+.card {
+    box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+}
+
+.card-header {
+    padding: 1rem;
+}
+
+.table > :not(caption) > * > * {
+    padding: 0.75rem;
+    vertical-align: middle;
+}
+
+.badge {
+    font-weight: 500;
+    padding: 0.5em 0.75em;
+}
+
+.alert {
+    margin-bottom: 1rem;
+}
+
+.table-borderless > :not(caption) > * > * {
+    border-bottom-width: 0;
+}
+
+.text-muted {
+    color: #6c757d !important;
+}
+</style>
 
 <?php $this->load->view('templates/footer'); ?> 

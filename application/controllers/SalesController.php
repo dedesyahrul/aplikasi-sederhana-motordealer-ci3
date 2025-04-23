@@ -4,7 +4,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 class SalesController extends CI_Controller {
     public function __construct() {
         parent::__construct();
-        $this->load->model(['SalesModel', 'MotorModel', 'CustomerModel']);
+        $this->load->model(['SalesModel', 'MotorModel', 'CustomerModel', 'SparepartModel']);
         $this->load->library(['form_validation', 'session']);
         $this->load->helper(['url', 'form']);
     }
@@ -45,10 +45,14 @@ class SalesController extends CI_Controller {
     public function add() {
         $data['title'] = 'Tambah Penjualan';
         $data['motors'] = $this->MotorModel->get_available_motors();
+        $data['spareparts'] = $this->SparepartModel->get_available_spareparts();
         $data['customers'] = $this->CustomerModel->getAll();
         
-        if (empty($data['motors'])) {
-            $this->session->set_flashdata('error', 'Tidak ada motor yang tersedia untuk dijual');
+        // Debug log
+        log_message('debug', 'Spareparts data: ' . print_r($data['spareparts'], true));
+        
+        if (empty($data['motors']) && empty($data['spareparts'])) {
+            $this->session->set_flashdata('error', 'Tidak ada item yang tersedia untuk dijual');
             redirect('sales');
         }
         
@@ -56,69 +60,126 @@ class SalesController extends CI_Controller {
     }
 
     public function store() {
-        $this->_validate();
+        // Validasi input
+        $this->form_validation->set_rules('customer_id', 'Customer', 'required');
+        $this->form_validation->set_rules('items[]', 'Items', 'required');
+        $this->form_validation->set_rules('metode_pembayaran', 'Metode Pembayaran', 'required');
 
         if ($this->form_validation->run() == FALSE) {
-            $this->add();
-            return;
-        }
-
-        $motor_id = $this->input->post('motor_id');
-        $motor = $this->MotorModel->getById($motor_id);
-        $harga_jual = $this->input->post('harga_jual');
-        $metode_pembayaran = $this->input->post('metode_pembayaran');
-
-        if (!$motor || $motor->stok <= 0) {
-            $this->session->set_flashdata('error', 'Motor tidak tersedia atau stok habis');
+            $this->session->set_flashdata('error', validation_errors());
             redirect('sales/add');
             return;
         }
 
+        $sale_type = $this->input->post('sale_type');
+        $items = $this->input->post('items');
+        $quantities = $this->input->post('quantities');
+        $total_amount = 0;
+
+        // Validasi stok dan hitung total
+        foreach ($items as $key => $item) {
+            list($type, $id) = explode('_', $item);
+            $quantity = intval($quantities[$key]);
+
+            if ($quantity <= 0) {
+                $this->session->set_flashdata('error', 'Jumlah item harus lebih dari 0');
+                redirect('sales/add');
+                return;
+            }
+
+            if ($type == 'motor') {
+                $motor = $this->MotorModel->getById($id);
+                if (!$motor || $motor->stok < $quantity) {
+                    $this->session->set_flashdata('error', 'Stok motor tidak mencukupi');
+                    redirect('sales/add');
+                    return;
+                }
+                $total_amount += $motor->harga * $quantity;
+            } else {
+                $sparepart = $this->SparepartModel->getById($id);
+                if (!$sparepart || $sparepart->stok < $quantity) {
+                    $this->session->set_flashdata('error', 'Stok sparepart tidak mencukupi');
+                    redirect('sales/add');
+                    return;
+                }
+                $total_amount += $sparepart->harga * $quantity;
+            }
+        }
+
         $this->db->trans_start();
 
-        // Insert data penjualan
-        $sale_data = [
-            'invoice_number' => $this->_generate_invoice_number(),
-            'customer_id' => $this->input->post('customer_id'),
-            'total_amount' => $harga_jual,
-            'payment_method' => $metode_pembayaran,
-            'status' => $metode_pembayaran == 'cash' ? 'completed' : 'pending',
-            'notes' => $this->input->post('keterangan'),
-            'created_at' => date('Y-m-d H:i:s'),
-            'updated_at' => date('Y-m-d H:i:s')
-        ];
-        
-        $sale_id = $this->SalesModel->insert($sale_data);
-        
-        if ($sale_id) {
-            // Insert item penjualan
-            $item_data = [
-                'sale_id' => $sale_id,
-                'item_type' => 'motor',
-                'item_id' => $motor_id,
-                'quantity' => 1,
-                'price' => $harga_jual,
-                'subtotal' => $harga_jual,
-                'created_at' => date('Y-m-d H:i:s')
+        try {
+            // Insert data penjualan
+            $sale_data = [
+                'invoice_number' => $this->_generate_invoice_number(),
+                'customer_id' => $this->input->post('customer_id'),
+                'total_amount' => $total_amount,
+                'payment_method' => $this->input->post('metode_pembayaran'),
+                'status' => $this->input->post('metode_pembayaran') == 'cash' ? 'completed' : 'pending',
+                'notes' => $this->input->post('keterangan'),
+                'created_at' => date('Y-m-d H:i:s'),
+                'updated_at' => date('Y-m-d H:i:s')
             ];
             
-            $this->SalesModel->insertSalesItem($item_data);
+            $sale_id = $this->SalesModel->insert($sale_data);
             
-            // Update stok motor
-            $this->MotorModel->updateStock($motor_id, -1); // Kurangi stok
-            
-            $this->db->trans_complete();
+            if ($sale_id) {
+                // Insert items penjualan
+                foreach ($items as $key => $item) {
+                    list($type, $id) = explode('_', $item);
+                    $quantity = intval($quantities[$key]);
+                    
+                    if ($type == 'motor') {
+                        $motor = $this->MotorModel->getById($id);
+                        $item_data = [
+                            'sale_id' => $sale_id,
+                            'item_type' => 'motor',
+                            'item_id' => $id,
+                            'quantity' => $quantity,
+                            'price' => $motor->harga,
+                            'subtotal' => $motor->harga * $quantity,
+                            'created_at' => date('Y-m-d H:i:s')
+                        ];
+                        if (!$this->SalesModel->insertSalesItem($item_data)) {
+                            throw new Exception('Gagal menyimpan item motor');
+                        }
+                        if (!$this->MotorModel->updateStock($id, $quantity)) {
+                            throw new Exception('Gagal mengupdate stok motor');
+                        }
+                    } else {
+                        $sparepart = $this->SparepartModel->getById($id);
+                        $item_data = [
+                            'sale_id' => $sale_id,
+                            'item_type' => 'sparepart',
+                            'item_id' => $id,
+                            'quantity' => $quantity,
+                            'price' => $sparepart->harga,
+                            'subtotal' => $sparepart->harga * $quantity,
+                            'created_at' => date('Y-m-d H:i:s')
+                        ];
+                        if (!$this->SalesModel->insertSalesItem($item_data)) {
+                            throw new Exception('Gagal menyimpan item sparepart');
+                        }
+                        if (!$this->SparepartModel->updateStock($id, $quantity, false)) {
+                            throw new Exception('Gagal mengupdate stok sparepart');
+                        }
+                    }
+                }
+                
+                $this->db->trans_complete();
 
-            if ($this->db->trans_status() === FALSE) {
-                $this->session->set_flashdata('error', 'Terjadi kesalahan saat menyimpan data penjualan');
-                redirect('sales/add');
-            } else {
+                if ($this->db->trans_status() === FALSE) {
+                    throw new Exception('Terjadi kesalahan dalam transaksi database');
+                }
+
                 $this->session->set_flashdata('success', 'Data penjualan berhasil ditambahkan');
                 redirect('sales');
+            } else {
+                throw new Exception('Gagal menyimpan data penjualan');
             }
-        } else {
+        } catch (Exception $e) {
             $this->db->trans_rollback();
-            $this->session->set_flashdata('error', 'Terjadi kesalahan saat menyimpan data penjualan');
+            $this->session->set_flashdata('error', $e->getMessage());
             redirect('sales/add');
         }
     }
