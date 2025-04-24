@@ -18,6 +18,17 @@ class SalesController extends CI_Controller {
             foreach ($data['sales'] as &$sale) {
                 $sale->status_label = $this->_get_status_label($sale->status);
                 $sale->status_class = $this->_get_status_class($sale->status);
+                
+                // Format items untuk tampilan
+                if (!empty($sale->items)) {
+                    foreach ($sale->items as &$item) {
+                        if ($item->item_type === 'motor') {
+                            $item->display_name = "{$item->merk} {$item->model} ({$item->tahun})";
+                        } else {
+                            $item->display_name = $item->nama;
+                        }
+                    }
+                }
             }
         }
         
@@ -193,21 +204,31 @@ class SalesController extends CI_Controller {
             redirect('sales');
         }
 
-        // Get sale items first
+        // Get sale items
         $data['sale_items'] = $this->SalesModel->getSalesItems($id);
-
-        // Determine sale type based on items
-        $data['sale_type'] = 'motor'; // default to motor
-        foreach ($data['sale_items'] as $item) {
-            if ($item->item_type == 'sparepart') {
-                $data['sale_type'] = 'sparepart';
-                break;
+        
+        // Format items untuk tampilan
+        foreach ($data['sale_items'] as &$item) {
+            if ($item->item_type === 'motor') {
+                $motor = $this->MotorModel->getById($item->item_id);
+                if ($motor) {
+                    $item->motor_details = $motor;
+                    $item->display_name = "{$motor->merk} {$motor->model} ({$motor->tahun})";
+                }
+            } else {
+                $sparepart = $this->SparepartModel->getById($item->item_id);
+                if ($sparepart) {
+                    $item->sparepart_details = $sparepart;
+                    $item->display_name = $sparepart->nama;
+                }
             }
         }
 
-        $data['motors'] = $this->MotorModel->get_all();
+        // Get available items for dropdown
+        $data['motors'] = $this->MotorModel->get_available_motors();
         $data['spareparts'] = $this->SparepartModel->get_available_spareparts();
         $data['customers'] = $this->CustomerModel->getAll();
+        
         $this->load->view('sales/edit', $data);
     }
 
@@ -324,11 +345,33 @@ class SalesController extends CI_Controller {
             show_404();
         }
 
-        // Get customer data
-        $data['customer'] = $this->CustomerModel->getById($data['sale']->customer_id);
-        
-        // Get sales items
+        // Get sales items with formatted display
         $data['sale_items'] = $this->SalesModel->getSalesItems($id);
+        
+        // Format items untuk tampilan
+        foreach ($data['sale_items'] as &$item) {
+            if ($item->item_type === 'motor') {
+                $item->display_name = $item->item_name;
+                $motor = $this->MotorModel->getById($item->item_id);
+                if ($motor) {
+                    $item->details = (object)[
+                        'merk' => $motor->merk,
+                        'model' => $motor->model,
+                        'tahun' => $motor->tahun,
+                        'warna' => $motor->warna
+                    ];
+                }
+            } else {
+                $item->display_name = $item->item_name;
+                $sparepart = $this->SparepartModel->getById($item->item_id);
+                if ($sparepart) {
+                    $item->details = (object)[
+                        'kode' => $sparepart->kode,
+                        'kategori' => $sparepart->kategori
+                    ];
+                }
+            }
+        }
         
         $this->load->view('sales/view', $data);
     }

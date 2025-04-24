@@ -84,21 +84,21 @@
                             <table class="table table-borderless">
                                 <tr>
                                     <th width="35%">Nama</th>
-                                    <td><?= $customer->name ?></td>
+                                    <td><?= $sale->customer_name ?></td>
                                 </tr>
                                 <tr>
                                     <th>No. Telepon</th>
                                     <td>
                                         <i class="fas fa-phone me-1"></i>
-                                        <?= $customer->phone ?>
+                                        <?= $sale->customer_phone ?>
                                     </td>
                                 </tr>
                                 <tr>
                                     <th>Email</th>
                                     <td>
-                                        <?php if ($customer->email): ?>
+                                        <?php if (!empty($sale->customer_email)): ?>
                                             <i class="fas fa-envelope me-1"></i>
-                                            <?= $customer->email ?>
+                                            <?= $sale->customer_email ?>
                                         <?php else: ?>
                                             <span class="text-muted">-</span>
                                         <?php endif; ?>
@@ -108,7 +108,7 @@
                                     <th>Alamat</th>
                                     <td>
                                         <i class="fas fa-map-marker-alt me-1"></i>
-                                        <?= $customer->address ?>
+                                        <?= $sale->customer_address ?>
                                     </td>
                                 </tr>
                                 <tr>
@@ -121,9 +121,9 @@
                                             'sim' => 'SIM',
                                             'passport' => 'Passport'
                                         ];
-                                        echo $identity_types[$customer->identity_type] ?? ucfirst($customer->identity_type);
+                                        echo isset($identity_types[$sale->identity_type]) ? $identity_types[$sale->identity_type] : ucfirst($sale->identity_type);
                                         ?> - 
-                                        <?= $customer->identity_number ?>
+                                        <?= $sale->identity_number ?>
                                     </td>
                                 </tr>
                             </table>

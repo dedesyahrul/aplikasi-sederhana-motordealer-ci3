@@ -12,12 +12,14 @@
             <!-- Nav tabs -->
             <ul class="nav nav-tabs mb-3" id="salesTab" role="tablist">
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link <?= $sale_type == 'motor' ? 'active' : '' ?>" id="motor-tab" data-bs-toggle="tab" data-bs-target="#motor" type="button" role="tab">
+                    <button class="nav-link <?= isset($sale_items[0]) && $sale_items[0]->item_type == 'motor' ? 'active' : '' ?>" 
+                            id="motor-tab" data-bs-toggle="tab" data-bs-target="#motor" type="button" role="tab">
                         <i class="fas fa-motorcycle me-2"></i>Penjualan Motor
                     </button>
                 </li>
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link <?= $sale_type == 'sparepart' ? 'active' : '' ?>" id="sparepart-tab" data-bs-toggle="tab" data-bs-target="#sparepart" type="button" role="tab">
+                    <button class="nav-link <?= isset($sale_items[0]) && $sale_items[0]->item_type == 'sparepart' ? 'active' : '' ?>" 
+                            id="sparepart-tab" data-bs-toggle="tab" data-bs-target="#sparepart" type="button" role="tab">
                         <i class="fas fa-cogs me-2"></i>Penjualan Sparepart
                     </button>
                 </li>
@@ -26,28 +28,29 @@
             <!-- Tab content -->
             <div class="tab-content" id="salesTabContent">
                 <!-- Motor Sales Tab -->
-                <div class="tab-pane fade <?= $sale_type == 'motor' ? 'show active' : '' ?>" id="motor" role="tabpanel">
+                <div class="tab-pane fade <?= isset($sale_items[0]) && $sale_items[0]->item_type == 'motor' ? 'show active' : '' ?>" 
+                     id="motor" role="tabpanel">
                     <form action="<?= base_url('sales/update/' . $sale->id) ?>" method="post" id="motorForm">
                         <input type="hidden" name="sale_type" value="motor">
-            <div class="row">
-                <div class="col-md-6">
-                    <div class="mb-3">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
                                     <label for="motor_customer_id" class="form-label">Customer <span class="text-danger">*</span></label>
                                     <select class="form-select select2" id="motor_customer_id" name="customer_id" required>
-                            <option value="">Pilih Customer</option>
-                            <?php foreach ($customers as $customer): ?>
-                                            <option value="<?= $customer->id ?>" <?= $customer->id == $sale->customer_id ? 'selected' : '' ?>>
+                                        <option value="">Pilih Customer</option>
+                                        <?php foreach ($customers as $customer): ?>
+                                            <option value="<?= $customer->id ?>" <?= $customer->id == $sale->customer_name ? 'selected' : '' ?>>
                                                 <?= $customer->name ?> - <?= $customer->phone ?> (<?= $customer->identity_number ?>)
-                                </option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
+                                            </option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                </div>
 
-                    <div class="mb-3">
+                                <div class="mb-3">
                                     <label for="motor_id" class="form-label">Motor <span class="text-danger">*</span></label>
                                     <select class="form-select select2" id="motor_id" name="items[]" required>
-                            <option value="">Pilih Motor</option>
-                            <?php foreach ($motors as $motor): ?>
+                                        <option value="">Pilih Motor</option>
+                                        <?php foreach ($motors as $motor): ?>
                                             <?php 
                                             $selected = false;
                                             foreach ($sale_items as $item) {
@@ -63,9 +66,9 @@
                                                     <?= $selected ? 'selected' : '' ?>>
                                                 <?= $motor->merk ?> <?= $motor->model ?> <?= $motor->tahun ?> - <?= $motor->warna ?> 
                                                 (Stok: <?= $motor->stok ?>) - Rp <?= number_format($motor->harga, 0, ',', '.') ?>
-                                </option>
-                            <?php endforeach; ?>
-                        </select>
+                                            </option>
+                                        <?php endforeach; ?>
+                                    </select>
                                 </div>
 
                                 <input type="hidden" name="quantities[]" value="1">
@@ -78,14 +81,14 @@
                                         <option value="credit_card" <?= $sale->payment_method == 'credit_card' ? 'selected' : '' ?>>Credit Card</option>
                                         <option value="transfer" <?= $sale->payment_method == 'transfer' ? 'selected' : '' ?>>Transfer Bank</option>
                                     </select>
-                    </div>
+                                </div>
 
-                    <div class="mb-3">
+                                <div class="mb-3">
                                     <label for="motor_notes" class="form-label">Keterangan</label>
                                     <textarea class="form-control" id="motor_notes" name="keterangan" rows="3" 
                                               placeholder="Tambahkan catatan atau keterangan tambahan"><?= $sale->notes ?></textarea>
-                    </div>
-                </div>
+                                </div>
+                            </div>
 
                             <div class="col-md-6">
                                 <div class="card border-primary">
@@ -126,34 +129,35 @@
                 </div>
 
                 <!-- Sparepart Sales Tab -->
-                <div class="tab-pane fade <?= $sale_type == 'sparepart' ? 'show active' : '' ?>" id="sparepart" role="tabpanel">
+                <div class="tab-pane fade <?= isset($sale_items[0]) && $sale_items[0]->item_type == 'sparepart' ? 'show active' : '' ?>" 
+                     id="sparepart" role="tabpanel">
                     <form action="<?= base_url('sales/update/' . $sale->id) ?>" method="post" id="sparepartForm">
                         <input type="hidden" name="sale_type" value="sparepart">
                         <div class="row">
-                <div class="col-md-6">
-                    <div class="mb-3">
+                            <div class="col-md-6">
+                                <div class="mb-3">
                                     <label for="sparepart_customer_id" class="form-label">Customer <span class="text-danger">*</span></label>
                                     <select class="form-select select2" id="sparepart_customer_id" name="customer_id" required>
                                         <option value="">Pilih Customer</option>
                                         <?php foreach ($customers as $customer): ?>
-                                            <option value="<?= $customer->id ?>" <?= $customer->id == $sale->customer_id ? 'selected' : '' ?>>
+                                            <option value="<?= $customer->id ?>" <?= $customer->id == $sale->customer_name ? 'selected' : '' ?>>
                                                 <?= $customer->name ?> - <?= $customer->phone ?> (<?= $customer->identity_number ?>)
                                             </option>
                                         <?php endforeach; ?>
                                     </select>
-                    </div>
+                                </div>
 
-                    <div class="mb-3">
+                                <div class="mb-3">
                                     <label for="sparepart_payment" class="form-label">Metode Pembayaran <span class="text-danger">*</span></label>
                                     <select class="form-select" id="sparepart_payment" name="metode_pembayaran" required>
-                            <option value="">Pilih Metode Pembayaran</option>
+                                        <option value="">Pilih Metode Pembayaran</option>
                                         <option value="cash" <?= $sale->payment_method == 'cash' ? 'selected' : '' ?>>Cash</option>
                                         <option value="credit_card" <?= $sale->payment_method == 'credit_card' ? 'selected' : '' ?>>Credit Card</option>
                                         <option value="transfer" <?= $sale->payment_method == 'transfer' ? 'selected' : '' ?>>Transfer Bank</option>
-                        </select>
-                    </div>
+                                    </select>
+                                </div>
 
-                    <div class="mb-3">
+                                <div class="mb-3">
                                     <label for="sparepart_notes" class="form-label">Keterangan</label>
                                     <textarea class="form-control" id="sparepart_notes" name="keterangan" rows="3"
                                               placeholder="Tambahkan catatan atau keterangan tambahan"><?= $sale->notes ?></textarea>
@@ -220,11 +224,11 @@
                                             </table>
                                         </div>
                                     </div>
-                    </div>
-                </div>
-            </div>
+                                </div>
+                            </div>
+                        </div>
 
-            <div class="d-flex justify-content-end mt-3">
+                        <div class="d-flex justify-content-end mt-3">
                             <a href="<?= base_url('sales') ?>" class="btn btn-secondary me-2">
                                 <i class="fas fa-times me-1"></i>Batal
                             </a>

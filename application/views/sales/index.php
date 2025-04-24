@@ -80,18 +80,23 @@
                                             </div>
                                         </td>
                                         <td>
-                                            <?php 
-                                            $items = explode('||', $sale->items_list);
-                                            foreach ($items as $item) {
-                                                if (strpos($item, 'motor:') !== false) {
-                                                    $motor = str_replace('motor:', '', $item);
-                                                    echo '<div class="badge bg-primary mb-1"><i class="fas fa-motorcycle me-1"></i>'.$motor.'</div><br>';
-                                                } else if (strpos($item, 'sparepart:') !== false) {
-                                                    $sparepart = str_replace('sparepart:', '', $item);
-                                                    echo '<div class="badge bg-info mb-1"><i class="fas fa-cogs me-1"></i>'.$sparepart.'</div><br>';
-                                                }
-                                            }
-                                            ?>
+                                            <?php if (!empty($sale->items)): ?>
+                                                <?php foreach ($sale->items as $item): ?>
+                                                    <?php if ($item->item_type == 'motor'): ?>
+                                                        <div class="badge bg-primary mb-1">
+                                                            <i class="fas fa-motorcycle me-1"></i>
+                                                            <?= $item->merk ?> <?= $item->model ?> <?= $item->tahun ?> (<?= $item->warna ?>)
+                                                        </div><br>
+                                                    <?php else: ?>
+                                                        <div class="badge bg-info mb-1">
+                                                            <i class="fas fa-cogs me-1"></i>
+                                                            <?= $item->nama ?> (<?= $item->quantity ?> unit)
+                                                        </div><br>
+                                                    <?php endif; ?>
+                                                <?php endforeach; ?>
+                                            <?php else: ?>
+                                                <span class="text-muted">Tidak ada item</span>
+                                            <?php endif; ?>
                                         </td>
                                         <td class="text-end">
                                             <div class="fw-bold">Rp <?= number_format($sale->total_amount, 0, ',', '.') ?></div>
@@ -180,8 +185,7 @@
                                 <?php 
                                 $no = 1;
                                 foreach ($sales as $sale): 
-                                    $item_types = explode(',', $sale->item_types);
-                                    if (in_array('motor', $item_types)):
+                                    if (in_array('motor', $sale->item_types)):
                                 ?>
                                 <tr>
                                     <td class="text-center"><?= $no++ ?></td>
@@ -197,15 +201,18 @@
                                         </div>
                                     </td>
                                     <td>
-                                        <?php 
-                                        $items = explode('||', $sale->items_list);
-                                        foreach ($items as $item) {
-                                            if (strpos($item, 'motor:') !== false) {
-                                                $motor = str_replace('motor:', '', $item);
-                                                echo '<div class="badge bg-primary mb-1"><i class="fas fa-motorcycle me-1"></i>'.$motor.'</div><br>';
-                                            }
-                                        }
-                                        ?>
+                                        <?php if (!empty($sale->items)): ?>
+                                            <?php foreach ($sale->items as $item): ?>
+                                                <?php if ($item->item_type == 'motor'): ?>
+                                                    <div class="badge bg-primary mb-1">
+                                                        <i class="fas fa-motorcycle me-1"></i>
+                                                        <?= $item->merk ?> <?= $item->model ?> <?= $item->tahun ?> (<?= $item->warna ?>)
+                                                    </div><br>
+                                                <?php endif; ?>
+                                            <?php endforeach; ?>
+                                        <?php else: ?>
+                                            <span class="text-muted">Tidak ada motor</span>
+                                        <?php endif; ?>
                                     </td>
                                     <td class="text-end">
                                         <div class="fw-bold">Rp <?= number_format($sale->total_amount, 0, ',', '.') ?></div>
@@ -278,8 +285,7 @@
                                 <?php 
                                 $no = 1;
                                 foreach ($sales as $sale): 
-                                    $item_types = explode(',', $sale->item_types);
-                                    if (in_array('sparepart', $item_types)):
+                                    if (in_array('sparepart', $sale->item_types)):
                                 ?>
                                 <tr>
                                     <td class="text-center"><?= $no++ ?></td>
@@ -295,15 +301,18 @@
                                         </div>
                                     </td>
                                     <td>
-                                        <?php 
-                                        $items = explode('||', $sale->items_list);
-                                        foreach ($items as $item) {
-                                            if (strpos($item, 'sparepart:') !== false) {
-                                                $sparepart = str_replace('sparepart:', '', $item);
-                                                echo '<div class="badge bg-info mb-1"><i class="fas fa-cogs me-1"></i>'.$sparepart.'</div><br>';
-                                            }
-                                        }
-                                        ?>
+                                        <?php if (!empty($sale->items)): ?>
+                                            <?php foreach ($sale->items as $item): ?>
+                                                <?php if ($item->item_type == 'sparepart'): ?>
+                                                    <div class="badge bg-info mb-1">
+                                                        <i class="fas fa-cogs me-1"></i>
+                                                        <?= $item->nama ?> (<?= $item->quantity ?> unit)
+                                                    </div><br>
+                                                <?php endif; ?>
+                                            <?php endforeach; ?>
+                                        <?php else: ?>
+                                            <span class="text-muted">Tidak ada sparepart</span>
+                                        <?php endif; ?>
                                     </td>
                                     <td class="text-end">
                                         <div class="fw-bold">Rp <?= number_format($sale->total_amount, 0, ',', '.') ?></div>
