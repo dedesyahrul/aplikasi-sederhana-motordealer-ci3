@@ -193,8 +193,20 @@ class SalesController extends CI_Controller {
             redirect('sales');
         }
 
+        // Get sale items first
         $data['sale_items'] = $this->SalesModel->getSalesItems($id);
+
+        // Determine sale type based on items
+        $data['sale_type'] = 'motor'; // default to motor
+        foreach ($data['sale_items'] as $item) {
+            if ($item->item_type == 'sparepart') {
+                $data['sale_type'] = 'sparepart';
+                break;
+            }
+        }
+
         $data['motors'] = $this->MotorModel->get_all();
+        $data['spareparts'] = $this->SparepartModel->get_available_spareparts();
         $data['customers'] = $this->CustomerModel->getAll();
         $this->load->view('sales/edit', $data);
     }
@@ -249,6 +261,29 @@ class SalesController extends CI_Controller {
         } else {
             $this->session->set_flashdata('error', 'Terjadi kesalahan saat memperbarui data penjualan');
         }
+        redirect('sales');
+    }
+
+    public function confirm_payment($id) {
+        $sale = $this->SalesModel->getById($id);
+        
+        if (!$sale) {
+            $this->session->set_flashdata('error', 'Data penjualan tidak ditemukan');
+            redirect('sales');
+        }
+
+        if ($sale->status !== 'pending') {
+            $this->session->set_flashdata('error', 'Status penjualan tidak dapat dikonfirmasi');
+            redirect('sales');
+        }
+
+        if ($this->SalesModel->confirmPayment($id)) {
+            // Tambahkan log pembayaran jika diperlukan
+            $this->session->set_flashdata('success', 'Pembayaran berhasil dikonfirmasi');
+        } else {
+            $this->session->set_flashdata('error', 'Gagal mengkonfirmasi pembayaran');
+        }
+        
         redirect('sales');
     }
 

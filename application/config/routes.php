@@ -113,6 +113,7 @@ $route['sales/update/(:num)'] = 'SalesController/update/$1';
 $route['sales/delete/(:num)'] = 'SalesController/delete/$1';
 $route['sales/view/(:num)'] = 'SalesController/view/$1';
 $route['sales/invoice/(:num)'] = 'SalesController/invoice/$1';
+$route['sales/confirm_payment/(:num)'] = 'SalesController/confirm_payment/$1';
 
 // Category routes
 $route['category'] = 'CategoryController/index';

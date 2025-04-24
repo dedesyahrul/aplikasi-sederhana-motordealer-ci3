@@ -153,4 +153,15 @@ class SalesModel extends CI_Model {
         
         return $this->db->get()->result();
     }
+
+    public function confirmPayment($id)
+    {
+        $data = [
+            'status' => 'completed',
+            'updated_at' => date('Y-m-d H:i:s')
+        ];
+        
+        $this->db->where('id', $id);
+        return $this->db->update('sales', $data);
+    }
 } 

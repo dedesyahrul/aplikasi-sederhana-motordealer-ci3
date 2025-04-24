@@ -50,7 +50,7 @@
                 <!-- All Sales Tab -->
                 <div class="tab-pane fade show active" id="all" role="tabpanel">
                     <div class="table-responsive">
-                        <table class="table table-bordered table-striped" id="allTable" width="100%">
+                        <table class="table table-bordered datatable" width="100%">
                             <thead>
                                 <tr>
                                     <th width="50" class="text-center">No</th>
@@ -124,6 +124,14 @@
                                                    title="Detail">
                                                     <i class="fas fa-eye"></i>
                                                 </a>
+                                                <?php if ($sale->status == 'pending'): ?>
+                                                <a href="<?= base_url('sales/confirm_payment/'.$sale->id) ?>"
+                                                   class="btn btn-success btn-sm btn-confirm-payment"
+                                                   data-bs-toggle="tooltip"
+                                                   title="Konfirmasi Pembayaran">
+                                                    <i class="fas fa-check-circle"></i>
+                                                </a>
+                                                <?php endif; ?>
                                                 <?php if ($sale->status !== 'completed'): ?>
                                                 <a href="<?= base_url('sales/edit/'.$sale->id) ?>" 
                                                    class="btn btn-warning btn-sm"
@@ -131,13 +139,12 @@
                                                    title="Edit">
                                                     <i class="fas fa-edit"></i>
                                                 </a>
-                                                <button type="button"
+                                                <a href="<?= base_url('sales/delete/'.$sale->id) ?>"
                                                    class="btn btn-danger btn-sm btn-delete"
-                                                   data-id="<?= $sale->id ?>"
                                                    data-bs-toggle="tooltip" 
                                                    title="Hapus">
                                                     <i class="fas fa-trash"></i>
-                                                </button>
+                                                </a>
                                                 <?php endif; ?>
                                             </div>
                                         </td>
@@ -156,7 +163,7 @@
                 <!-- Motor Sales Tab -->
                 <div class="tab-pane fade" id="motor" role="tabpanel">
                     <div class="table-responsive">
-                        <table class="table table-bordered table-striped" id="motorTable" width="100%">
+                        <table class="table table-bordered datatable" width="100%">
                             <thead>
                                 <tr>
                                     <th width="50" class="text-center">No</th>
@@ -217,6 +224,14 @@
                                                title="Detail">
                                                 <i class="fas fa-eye"></i>
                                             </a>
+                                            <?php if ($sale->status == 'pending'): ?>
+                                            <a href="<?= base_url('sales/confirm_payment/'.$sale->id) ?>"
+                                               class="btn btn-success btn-sm btn-confirm-payment"
+                                               data-bs-toggle="tooltip"
+                                               title="Konfirmasi Pembayaran">
+                                                <i class="fas fa-check-circle"></i>
+                                            </a>
+                                            <?php endif; ?>
                                             <?php if ($sale->status !== 'completed'): ?>
                                             <a href="<?= base_url('sales/edit/'.$sale->id) ?>" 
                                                class="btn btn-warning btn-sm"
@@ -224,13 +239,12 @@
                                                title="Edit">
                                                 <i class="fas fa-edit"></i>
                                             </a>
-                                            <button type="button"
+                                            <a href="<?= base_url('sales/delete/'.$sale->id) ?>"
                                                class="btn btn-danger btn-sm btn-delete"
-                                               data-id="<?= $sale->id ?>"
                                                data-bs-toggle="tooltip" 
                                                title="Hapus">
                                                 <i class="fas fa-trash"></i>
-                                            </button>
+                                            </a>
                                             <?php endif; ?>
                                         </div>
                                     </td>
@@ -247,7 +261,7 @@
                 <!-- Sparepart Sales Tab -->
                 <div class="tab-pane fade" id="sparepart" role="tabpanel">
                     <div class="table-responsive">
-                        <table class="table table-bordered table-striped" id="sparepartTable" width="100%">
+                        <table class="table table-bordered datatable" width="100%">
                             <thead>
                                 <tr>
                                     <th width="50" class="text-center">No</th>
@@ -308,6 +322,14 @@
                                                title="Detail">
                                                 <i class="fas fa-eye"></i>
                                             </a>
+                                            <?php if ($sale->status == 'pending'): ?>
+                                            <a href="<?= base_url('sales/confirm_payment/'.$sale->id) ?>"
+                                               class="btn btn-success btn-sm btn-confirm-payment"
+                                               data-bs-toggle="tooltip"
+                                               title="Konfirmasi Pembayaran">
+                                                <i class="fas fa-check-circle"></i>
+                                            </a>
+                                            <?php endif; ?>
                                             <?php if ($sale->status !== 'completed'): ?>
                                             <a href="<?= base_url('sales/edit/'.$sale->id) ?>" 
                                                class="btn btn-warning btn-sm"
@@ -315,13 +337,12 @@
                                                title="Edit">
                                                 <i class="fas fa-edit"></i>
                                             </a>
-                                            <button type="button"
+                                            <a href="<?= base_url('sales/delete/'.$sale->id) ?>"
                                                class="btn btn-danger btn-sm btn-delete"
-                                               data-id="<?= $sale->id ?>"
                                                data-bs-toggle="tooltip" 
                                                title="Hapus">
                                                 <i class="fas fa-trash"></i>
-                                            </button>
+                                            </a>
                                             <?php endif; ?>
                                         </div>
                                     </td>
@@ -368,64 +389,67 @@
     </div>
 </div>
 
-<!-- DataTables CSS -->
-<link href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css" rel="stylesheet">
-<link href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.bootstrap5.min.css" rel="stylesheet">
-
-<!-- DataTables JavaScript -->
-<script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
-<script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
-<script src="https://cdn.datatables.net/responsive/2.5.0/js/dataTables.responsive.min.js"></script>
-<script src="https://cdn.datatables.net/responsive/2.5.0/js/responsive.bootstrap5.min.js"></script>
+<!-- Payment Confirmation Modal -->
+<div class="modal fade" id="confirmPaymentModal" tabindex="-1" aria-labelledby="confirmPaymentModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmPaymentModalLabel">
+                    <i class="fas fa-check-circle text-success me-2"></i>
+                    Konfirmasi Pembayaran
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="confirmPaymentForm" method="POST">
+                <div class="modal-body">
+                    <p class="mb-1">Apakah Anda yakin ingin mengkonfirmasi pembayaran ini?</p>
+                    <p class="text-success mb-0"><small>Status penjualan akan diubah menjadi "Selesai".</small></p>
+                    <input type="hidden" name="<?= $this->security->get_csrf_token_name() ?>" value="<?= $this->security->get_csrf_hash() ?>">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-1"></i>Batal
+                    </button>
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-check me-1"></i>Konfirmasi
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 
 <script>
-$(document).ready(function() {
-    // DataTable Configuration
-    const dataTableConfig = {
-        language: {
-            url: '//cdn.datatables.net/plug-ins/1.10.20/i18n/Indonesian.json'
-        },
-        responsive: true,
-        order: [[2, 'desc']], // Sort by date column descending
-        columnDefs: [
-            { orderable: false, targets: [7] }, // Disable sorting on action column
-            { className: 'text-center', targets: [0, 6, 7] },
-            { className: 'text-end', targets: [5] }
-        ]
-    };
-
-    // Initialize DataTables
-    $('#allTable').DataTable(dataTableConfig);
-    $('#motorTable').DataTable(dataTableConfig);
-    $('#sparepartTable').DataTable(dataTableConfig);
-
-    // Initialize tooltips
-    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-        return new bootstrap.Tooltip(tooltipTriggerEl, {
-            trigger: 'hover'
-        });
-    });
-
+document.addEventListener('DOMContentLoaded', function() {
     // Handle delete confirmation
-    $('.btn-delete').on('click', function(e) {
-        e.preventDefault();
-        var saleId = $(this).data('id');
-        $('#deleteForm').attr('action', '<?= base_url('sales/delete/') ?>' + saleId);
-        var deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
-        deleteModal.show();
+    document.querySelectorAll('.btn-delete').forEach(function(button) {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            var saleId = this.getAttribute('href').split('/').pop();
+            document.getElementById('deleteForm').setAttribute('action', '<?= base_url('sales/delete/') ?>' + saleId);
+            var deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+            deleteModal.show();
+        });
     });
 
-    // Auto close alerts after 3 seconds
-    window.setTimeout(function() {
-        $('.alert').fadeTo(500, 0).slideUp(500, function() {
-            $(this).remove();
+    // Handle payment confirmation
+    document.querySelectorAll('.btn-confirm-payment').forEach(function(button) {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            var saleId = this.getAttribute('href').split('/').pop();
+            document.getElementById('confirmPaymentForm').setAttribute('action', '<?= base_url('sales/confirm_payment/') ?>' + saleId);
+            var confirmPaymentModal = new bootstrap.Modal(document.getElementById('confirmPaymentModal'));
+            confirmPaymentModal.show();
         });
-    }, 3000);
+    });
 
     // Handle tab changes
-    $('a[data-bs-toggle="tab"]').on('shown.bs.tab', function (e) {
-        $.fn.dataTable.tables({ visible: true, api: true }).columns.adjust();
+    document.querySelectorAll('a[data-bs-toggle="tab"]').forEach(function(tab) {
+        tab.addEventListener('shown.bs.tab', function(e) {
+            if ($.fn.dataTable) {
+                $.fn.dataTable.tables({ visible: true, api: true }).columns.adjust();
+            }
+        });
     });
 });
 </script>
@@ -451,40 +475,6 @@ $(document).ready(function() {
     margin-right: 1px;
 }
 
-/* DataTables Styles */
-.dataTables_wrapper .dataTables_length select {
-    padding-right: 2rem;
-}
-
-.dataTables_wrapper .dataTables_filter input {
-    margin-left: 0.5rem;
-}
-
-/* Alert Styles */
-.alert {
-    margin-bottom: 1rem;
-}
-
-.alert-dismissible .btn-close {
-    padding: 0.75rem 1rem;
-}
-
-/* Tab Styles */
-.nav-tabs .nav-link {
-    color: #6c757d;
-    font-weight: 500;
-}
-
-.nav-tabs .nav-link.active {
-    color: #0d6efd;
-    font-weight: 600;
-}
-
-/* Customer Info Styles */
-.text-gray-500 {
-    color: #adb5bd;
-}
-
 /* Badge Styles */
 .badge {
     display: inline-block;
@@ -493,6 +483,24 @@ $(document).ready(function() {
 
 .badge i {
     font-size: 0.875rem;
+}
+
+/* Modal Styles */
+.modal-dialog {
+    margin: 1.75rem auto;
+}
+
+.modal-content {
+    border: none;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+.modal-header {
+    border-bottom: 1px solid #e3e6f0;
+}
+
+.modal-footer {
+    border-top: 1px solid #e3e6f0;
 }
 </style>
 
