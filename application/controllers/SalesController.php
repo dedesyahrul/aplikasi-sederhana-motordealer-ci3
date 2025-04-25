@@ -19,14 +19,10 @@ class SalesController extends CI_Controller {
                 $sale->status_label = $this->_get_status_label($sale->status);
                 $sale->status_class = $this->_get_status_class($sale->status);
                 
-                // Format items untuk tampilan
+                // Format items sudah ditangani di model
                 if (!empty($sale->items)) {
                     foreach ($sale->items as &$item) {
-                        if ($item->item_type === 'motor') {
-                            $item->display_name = "{$item->merk} {$item->model} ({$item->tahun})";
-                        } else {
-                            $item->display_name = $item->nama;
-                        }
+                        $item->display_name = $item->nama_item;
                     }
                 }
             }
@@ -209,17 +205,16 @@ class SalesController extends CI_Controller {
         
         // Format items untuk tampilan
         foreach ($data['sale_items'] as &$item) {
+            $item->display_name = $item->item_name;
             if ($item->item_type === 'motor') {
                 $motor = $this->MotorModel->getById($item->item_id);
                 if ($motor) {
                     $item->motor_details = $motor;
-                    $item->display_name = "{$motor->merk} {$motor->model} ({$motor->tahun})";
                 }
             } else {
                 $sparepart = $this->SparepartModel->getById($item->item_id);
                 if ($sparepart) {
                     $item->sparepart_details = $sparepart;
-                    $item->display_name = $sparepart->nama;
                 }
             }
         }
@@ -228,6 +223,9 @@ class SalesController extends CI_Controller {
         $data['motors'] = $this->MotorModel->get_available_motors();
         $data['spareparts'] = $this->SparepartModel->get_available_spareparts();
         $data['customers'] = $this->CustomerModel->getAll();
+        
+        // Debug log untuk memastikan data
+        log_message('debug', 'Sale data: ' . print_r($data['sale'], true));
         
         $this->load->view('sales/edit', $data);
     }
@@ -348,21 +346,17 @@ class SalesController extends CI_Controller {
         // Get sales items with formatted display
         $data['sale_items'] = $this->SalesModel->getSalesItems($id);
         
-        // Format items untuk tampilan
+        // Format items untuk tampilan tidak perlu lagi karena sudah ada nama_item
         foreach ($data['sale_items'] as &$item) {
+            $item->display_name = $item->item_name;
             if ($item->item_type === 'motor') {
-                $item->display_name = $item->item_name;
-                $motor = $this->MotorModel->getById($item->item_id);
-                if ($motor) {
-                    $item->details = (object)[
-                        'merk' => $motor->merk,
-                        'model' => $motor->model,
-                        'tahun' => $motor->tahun,
-                        'warna' => $motor->warna
-                    ];
-                }
+                $item->details = (object)[
+                    'merk' => $item->merk ?? '-',
+                    'model' => $item->model ?? '-',
+                    'tahun' => $item->tahun ?? '-',
+                    'warna' => $item->warna ?? '-'
+                ];
             } else {
-                $item->display_name = $item->item_name;
                 $sparepart = $this->SparepartModel->getById($item->item_id);
                 if ($sparepart) {
                     $item->details = (object)[
@@ -386,17 +380,18 @@ class SalesController extends CI_Controller {
     private function _generate_invoice_number() {
         $prefix = 'INV';
         $date = date('Ymd');
-        $last_invoice = $this->db->select('invoice_number')
-                                ->from('sales')
-                                ->like('invoice_number', $prefix . $date, 'after')
-                                ->order_by('id', 'DESC')
-                                ->limit(1)
-                                ->get()
-                                ->row();
-
+        
+        // Optimasi query invoice
+        $this->db->select('SUBSTRING(invoice_number, -4) as last_number', false)
+                 ->from('sales')
+                 ->where('DATE(created_at)', date('Y-m-d'))
+                 ->order_by('id', 'DESC')
+                 ->limit(1);
+        
+        $last_invoice = $this->db->get()->row();
+        
         if ($last_invoice) {
-            $last_number = substr($last_invoice->invoice_number, -4);
-            $next_number = str_pad((int)$last_number + 1, 4, '0', STR_PAD_LEFT);
+            $next_number = str_pad((int)$last_invoice->last_number + 1, 4, '0', STR_PAD_LEFT);
         } else {
             $next_number = '0001';
         }

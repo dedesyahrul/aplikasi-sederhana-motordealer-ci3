@@ -19,73 +19,96 @@ class SalesModel extends CI_Model {
             $this->db->select('
                 s.id,
                 s.invoice_number,
-                s.created_at,
+                DATE_FORMAT(s.created_at, "%d %M %Y") as created_at,
                 s.total_amount,
                 s.payment_method,
                 s.status,
-                c.name as nama_customer,
-                c.phone as customer_phone'
+                TRIM(c.name) as nama_customer,
+                TRIM(c.phone) as customer_phone'
             );
             $this->db->from($this->table . ' s');
             $this->db->join('customers c', 'c.id = s.customer_id');
             $this->db->order_by('s.created_at', 'DESC');
             $sales = $this->db->get()->result();
 
-            // Get motor items
+            // Konversi nama bulan ke bahasa Indonesia
             foreach ($sales as $sale) {
-                $sale->items = [];
-                $sale->item_types = [];
+                $sale->created_at = $this->_formatTanggalIndonesia($sale->created_at);
+            }
 
-                // Get motor items
+            if (!empty($sales)) {
+                $sale_ids = array_column($sales, 'id');
+                
+                // Get all motor items in single query
                 $this->db->select('
-                    si.item_type,
+                    si.sale_id,
                     si.quantity,
-                    m.merk,
-                    m.model,
+                    TRIM(CONCAT(m.merk, " ", m.model, " (", m.tahun, ")")) as nama_item,
+                    "motor" as item_type,
+                    TRIM(m.merk) as merk,
+                    TRIM(m.model) as model,
                     m.tahun,
-                    m.warna'
+                    TRIM(m.warna) as warna'
                 );
                 $this->db->from('sales_items si');
                 $this->db->join('motors m', 'm.id = si.item_id');
-                $this->db->where('si.sale_id', $sale->id);
                 $this->db->where('si.item_type', 'motor');
+                $this->db->where_in('si.sale_id', $sale_ids);
                 $motor_items = $this->db->get()->result();
 
-                // Get sparepart items
+                // Get all sparepart items in single query
                 $this->db->select('
-                    si.item_type,
+                    si.sale_id,
                     si.quantity,
-                    sp.nama'
+                    TRIM(sp.nama) as nama_item,
+                    "sparepart" as item_type'
                 );
                 $this->db->from('sales_items si');
                 $this->db->join('spareparts sp', 'sp.id = si.item_id');
-                $this->db->where('si.sale_id', $sale->id);
                 $this->db->where('si.item_type', 'sparepart');
+                $this->db->where_in('si.sale_id', $sale_ids);
                 $sparepart_items = $this->db->get()->result();
 
-                // Combine items
+                // Index items by sale_id for faster lookup
+                $items_by_sale = [];
                 foreach ($motor_items as $item) {
-                    $sale->items[] = (object)[
-                        'item_type' => 'motor',
-                        'quantity' => $item->quantity,
-                        'merk' => $item->merk,
-                        'model' => $item->model,
-                        'tahun' => $item->tahun,
-                        'warna' => $item->warna
-                    ];
-                    if (!in_array('motor', $sale->item_types)) {
-                        $sale->item_types[] = 'motor';
-                    }
+                    $items_by_sale[$item->sale_id][] = $item;
+                }
+                foreach ($sparepart_items as $item) {
+                    $items_by_sale[$item->sale_id][] = $item;
                 }
 
-                foreach ($sparepart_items as $item) {
-                    $sale->items[] = (object)[
-                        'item_type' => 'sparepart',
-                        'quantity' => $item->quantity,
-                        'nama' => $item->nama
-                    ];
-                    if (!in_array('sparepart', $sale->item_types)) {
-                        $sale->item_types[] = 'sparepart';
+                // Combine data efficiently
+                foreach ($sales as $sale) {
+                    $sale->items = [];
+                    $sale->item_types = [];
+
+                    if (isset($items_by_sale[$sale->id])) {
+                        foreach ($items_by_sale[$sale->id] as $item) {
+                            if ($item->item_type === 'motor') {
+                                $sale->items[] = (object)[
+                                    'item_type' => 'motor',
+                                    'quantity' => $item->quantity,
+                                    'nama_item' => $item->nama_item,
+                                    'merk' => $item->merk,
+                                    'model' => $item->model,
+                                    'tahun' => $item->tahun,
+                                    'warna' => $item->warna
+                                ];
+                                if (!in_array('motor', $sale->item_types)) {
+                                    $sale->item_types[] = 'motor';
+                                }
+                            } else {
+                                $sale->items[] = (object)[
+                                    'item_type' => 'sparepart',
+                                    'quantity' => $item->quantity,
+                                    'nama_item' => $item->nama_item
+                                ];
+                                if (!in_array('sparepart', $sale->item_types)) {
+                                    $sale->item_types[] = 'sparepart';
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -135,6 +158,7 @@ class SalesModel extends CI_Model {
                 s.payment_method,
                 s.status,
                 s.notes,
+                s.customer_id,
                 c.name as customer_name,
                 c.phone as customer_phone,
                 c.email as customer_email,
@@ -212,7 +236,11 @@ class SalesModel extends CI_Model {
                 si.quantity,
                 si.price,
                 si.subtotal,
-                CONCAT(m.merk, " ", m.model, " ", m.tahun) as item_name'
+                CONCAT(m.merk, " ", m.model, " ", m.tahun) as item_name,
+                m.merk,
+                m.model,
+                m.tahun,
+                m.warna'
             );
             $this->db->from($this->items_table . ' si');
             $this->db->join('motors m', 'm.id = si.item_id');
@@ -355,5 +383,24 @@ class SalesModel extends CI_Model {
         $this->cache->delete('sales_all_' . date('Y-m-d_H'));
         // Bersihkan cache lain yang mungkin terpengaruh
         $this->cache->clean();
+    }
+
+    private function _formatTanggalIndonesia($tanggal) {
+        $bulan = array(
+            'January' => 'Januari',
+            'February' => 'Februari',
+            'March' => 'Maret',
+            'April' => 'April',
+            'May' => 'Mei',
+            'June' => 'Juni',
+            'July' => 'Juli',
+            'August' => 'Agustus',
+            'September' => 'September',
+            'October' => 'Oktober',
+            'November' => 'November',
+            'December' => 'Desember'
+        );
+
+        return strtr($tanggal, $bulan);
     }
 } 

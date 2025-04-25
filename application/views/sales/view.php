@@ -238,5 +238,5 @@
     color: #6c757d !important;
 }
 </style>
-
 <?php $this->load->view('templates/footer'); ?> 
+

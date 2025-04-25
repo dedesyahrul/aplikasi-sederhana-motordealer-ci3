@@ -39,7 +39,7 @@
                                     <select class="form-select select2" id="motor_customer_id" name="customer_id" required>
                                         <option value="">Pilih Customer</option>
                                         <?php foreach ($customers as $customer): ?>
-                                            <option value="<?= $customer->id ?>" <?= $customer->id == $sale->customer_name ? 'selected' : '' ?>>
+                                            <option value="<?= $customer->id ?>" <?= $customer->id == $sale->customer_id ? 'selected' : '' ?>>
                                                 <?= $customer->name ?> - <?= $customer->phone ?> (<?= $customer->identity_number ?>)
                                             </option>
                                         <?php endforeach; ?>
@@ -53,9 +53,11 @@
                                         <?php foreach ($motors as $motor): ?>
                                             <?php 
                                             $selected = false;
+                                            $motor_price = 0;
                                             foreach ($sale_items as $item) {
                                                 if ($item->item_type == 'motor' && $item->item_id == $motor->id) {
                                                     $selected = true;
+                                                    $motor_price = $item->price;
                                                     break;
                                                 }
                                             }
@@ -101,7 +103,7 @@
                                                 <tr>
                                                     <th>Harga Motor:</th>
                                                     <td class="text-end" id="motorPrice">
-                                                        Rp <?= number_format($sale->total_amount, 0, ',', '.') ?>
+                                                        Rp <?= number_format($motor_price, 0, ',', '.') ?>
                                                     </td>
                                                 </tr>
                                                 <tr class="border-top">
@@ -140,7 +142,7 @@
                                     <select class="form-select select2" id="sparepart_customer_id" name="customer_id" required>
                                         <option value="">Pilih Customer</option>
                                         <?php foreach ($customers as $customer): ?>
-                                            <option value="<?= $customer->id ?>" <?= $customer->id == $sale->customer_name ? 'selected' : '' ?>>
+                                            <option value="<?= $customer->id ?>" <?= $customer->id == $sale->customer_id ? 'selected' : '' ?>>
                                                 <?= $customer->name ?> - <?= $customer->phone ?> (<?= $customer->identity_number ?>)
                                             </option>
                                         <?php endforeach; ?>
@@ -295,8 +297,20 @@ $(document).ready(function() {
     // Initialize Select2
     $('.select2').select2({
         theme: 'bootstrap-5',
+        width: '100%'
+    });
+
+    // Initialize Select2 in modal with correct parent
+    $('#sparepartSelect').select2({
+        theme: 'bootstrap-5',
         width: '100%',
-        dropdownParent: $('.modal-content')
+        dropdownParent: $('#addSparepartModal')
+    });
+
+    // Sync customer selection between tabs
+    $('#motor_customer_id, #sparepart_customer_id').on('change', function() {
+        const selectedValue = $(this).val();
+        $('#motor_customer_id, #sparepart_customer_id').val(selectedValue).trigger('change.select2');
     });
 
     // Handle Motor Form
@@ -319,6 +333,11 @@ $(document).ready(function() {
         const select = $('#sparepartSelect');
         const option = select.find('option:selected');
         const quantity = parseInt($('#sparepartQuantity').val());
+        
+        // Reset validation
+        select.removeClass('is-invalid');
+        $('#sparepartQuantity').removeClass('is-invalid');
+        $('#sparepartError, #quantityError').hide();
         
         if (!select.val()) {
             $('#sparepartError').text('Silakan pilih sparepart').show();
@@ -353,7 +372,7 @@ $(document).ready(function() {
                 </td>
                 <td>
                     <input type="number" class="form-control item-qty" name="quantities[]" 
-                           value="${quantity}" min="1" required>
+                           value="${quantity}" min="1" max="${stok}" required>
                 </td>
                 <td class="text-end">Rp ${formatRupiah(price)}</td>
                 <td class="text-end">Rp ${formatRupiah(subtotal)}</td>
@@ -367,17 +386,17 @@ $(document).ready(function() {
         
         $('#sparepartTable tbody').append(row);
         updateSparepartTotal();
+        
+        // Reset form
+        select.val('').trigger('change');
+        $('#sparepartQuantity').val(1);
         $('#addSparepartModal').modal('hide');
     });
 
     // Handle Delete Item
     $(document).on('click', '.btn-delete-item', function() {
-        if ($('#sparepartTable tbody tr').length > 1) {
-            $(this).closest('tr').remove();
-            updateSparepartTotal();
-        } else {
-            alert('Minimal harus ada 1 item');
-        }
+        $(this).closest('tr').remove();
+        updateSparepartTotal();
     });
 
     // Handle Quantity Change
@@ -385,8 +404,15 @@ $(document).ready(function() {
         const row = $(this).closest('tr');
         const price = parseFloat(row.find('td:eq(2)').text().replace(/[^0-9]/g, ''));
         const quantity = parseInt($(this).val()) || 0;
-        const subtotal = price * quantity;
+        const max = parseInt($(this).attr('max'));
         
+        if (quantity > max) {
+            alert('Jumlah melebihi stok tersedia');
+            $(this).val(max);
+            return;
+        }
+        
+        const subtotal = price * quantity;
         row.find('td:eq(3)').text('Rp ' + formatRupiah(subtotal));
         updateSparepartTotal();
     });
@@ -399,8 +425,8 @@ $(document).ready(function() {
     function updateSparepartTotal() {
         let total = 0;
         $('#sparepartTable tbody tr').each(function() {
-            const subtotalText = $(this).find('td:eq(3)').text().replace('Rp ', '').replace(/\./g, '');
-            total += parseInt(subtotalText);
+            const subtotalText = $(this).find('td:eq(3)').text().replace(/[Rp\s.]/g, '');
+            total += parseInt(subtotalText) || 0;
         });
         $('#sparepartTotal').text('Rp ' + formatRupiah(total));
     }
@@ -408,6 +434,9 @@ $(document).ready(function() {
     function formatRupiah(number) {
         return new Intl.NumberFormat('id-ID').format(number);
     }
+
+    // Initial calculations
+    updateSparepartTotal();
 });
 </script>
 

@@ -69,7 +69,7 @@
                                     <tr>
                                         <td class="text-center"><?= $no++ ?></td>
                                         <td><?= $sale->invoice_number ?? '-' ?></td>
-                                        <td><?= date('d/m/Y', strtotime($sale->created_at)) ?></td>
+                                        <td><?= $sale->created_at ?></td>
                                         <td>
                                             <div class="d-flex align-items-center">
                                                 <i class="fas fa-user-circle text-gray-500 me-2 fa-lg"></i>
@@ -85,12 +85,12 @@
                                                     <?php if ($item->item_type == 'motor'): ?>
                                                         <div class="badge bg-primary mb-1">
                                                             <i class="fas fa-motorcycle me-1"></i>
-                                                            <?= $item->merk ?> <?= $item->model ?> <?= $item->tahun ?> (<?= $item->warna ?>)
+                                                            <?= $item->nama_item ?>
                                                         </div><br>
                                                     <?php else: ?>
                                                         <div class="badge bg-info mb-1">
                                                             <i class="fas fa-cogs me-1"></i>
-                                                            <?= $item->nama ?> (<?= $item->quantity ?> unit)
+                                                            <?= $item->nama_item ?> (<?= $item->quantity ?> unit)
                                                         </div><br>
                                                     <?php endif; ?>
                                                 <?php endforeach; ?>
@@ -190,7 +190,7 @@
                                 <tr>
                                     <td class="text-center"><?= $no++ ?></td>
                                     <td><?= $sale->invoice_number ?? '-' ?></td>
-                                    <td><?= date('d/m/Y', strtotime($sale->created_at)) ?></td>
+                                    <td><?= $sale->created_at ?></td>
                                     <td>
                                         <div class="d-flex align-items-center">
                                             <i class="fas fa-user-circle text-gray-500 me-2 fa-lg"></i>
@@ -206,7 +206,7 @@
                                                 <?php if ($item->item_type == 'motor'): ?>
                                                     <div class="badge bg-primary mb-1">
                                                         <i class="fas fa-motorcycle me-1"></i>
-                                                        <?= $item->merk ?> <?= $item->model ?> <?= $item->tahun ?> (<?= $item->warna ?>)
+                                                        <?= $item->nama_item ?>
                                                     </div><br>
                                                 <?php endif; ?>
                                             <?php endforeach; ?>
@@ -290,7 +290,7 @@
                                 <tr>
                                     <td class="text-center"><?= $no++ ?></td>
                                     <td><?= $sale->invoice_number ?? '-' ?></td>
-                                    <td><?= date('d/m/Y', strtotime($sale->created_at)) ?></td>
+                                    <td><?= $sale->created_at ?></td>
                                     <td>
                                         <div class="d-flex align-items-center">
                                             <i class="fas fa-user-circle text-gray-500 me-2 fa-lg"></i>
@@ -306,7 +306,7 @@
                                                 <?php if ($item->item_type == 'sparepart'): ?>
                                                     <div class="badge bg-info mb-1">
                                                         <i class="fas fa-cogs me-1"></i>
-                                                        <?= $item->nama ?> (<?= $item->quantity ?> unit)
+                                                        <?= $item->nama_item ?> (<?= $item->quantity ?> unit)
                                                     </div><br>
                                                 <?php endif; ?>
                                             <?php endforeach; ?>
